@@ -6,7 +6,16 @@ interface CardProps {
 }
 
 export function Card({ children, className }: CardProps) {
-  return <section className={cn("rounded-xl border border-slate-200 bg-white shadow-sm", className)}>{children}</section>;
+  return (
+    <section
+      className={cn(
+        "rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-800 dark:shadow-none",
+        className,
+      )}
+    >
+      {children}
+    </section>
+  );
 }
 
 export function CardHeader({ children, className }: CardProps) {

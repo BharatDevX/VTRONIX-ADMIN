@@ -5,9 +5,9 @@ type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 const toneClass: Record<BadgeTone, string> = {
   danger: "border-rose-200 bg-rose-50 text-rose-700",
   info: "border-sky-200 bg-sky-50 text-sky-700",
-  neutral: "border-slate-200 bg-slate-50 text-slate-700",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  warning: "border-amber-200 bg-amber-50 text-amber-700",
+  neutral: "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200",
+  success: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  warning: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900 dark:text-amber-200",
 };
 
 interface BadgeProps {

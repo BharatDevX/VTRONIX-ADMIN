@@ -40,7 +40,7 @@ export default function SettingsPage() {
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Organization</h2>
+            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Organization</h2>
           </CardHeader>
           <CardContent>
             <form
@@ -90,9 +90,9 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Roles and permissions</h2>
+            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Roles and permissions</h2>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-slate-600">
+          <CardContent className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
             <p>Admin: full organization control, employee access, approvals, reports, settings.</p>
             <p>Manager: team operations, attendance, visits, sales, MTP actions.</p>
             <p>Viewer: read-only dashboards, reports, and operational history.</p>

@@ -23,7 +23,7 @@ export default function TrackingPage() {
       <div className="grid gap-5 p-5 xl:grid-cols-[1fr_360px]">
         <Card className="overflow-hidden">
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Employee map</h2>
+            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Employee map</h2>
           </CardHeader>
           <CardContent className="p-0">
             {locations.isLoading ? (
@@ -56,17 +56,17 @@ export default function TrackingPage() {
 
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Active employees</h2>
+            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Active employees</h2>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {(locations.data ?? []).map((location) => (
-                <div className="rounded-xl border border-slate-200 p-3" key={location.id}>
-                  <p className="font-semibold text-slate-950">{location.employee_name}</p>
-                  <p className="text-sm text-slate-500">{location.employee_number} • {location.branch}</p>
-                  <p className="text-sm text-slate-500">{formatDateTime(location.updated_at)}</p>
-                  <p className="mt-2 text-sm font-medium text-slate-700">Battery: {location.battery_percent !== null ? `${location.battery_percent}%` : "Unavailable"}</p>
-                  <p className="text-sm font-medium text-slate-700">Status: {location.is_working ? "Working" : "Not Working"}</p>
+                <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-800" key={location.id}>
+                  <p className="font-semibold text-slate-950 dark:text-white">{location.employee_name}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{location.employee_number} • {location.branch}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{formatDateTime(location.updated_at)}</p>
+                  <p className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-300">Battery: {location.battery_percent !== null ? `${location.battery_percent}%` : "Unavailable"}</p>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Status: {location.is_working ? "Working" : "Not Working"}</p>
                 </div>
               ))}
             </div>

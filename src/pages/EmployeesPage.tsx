@@ -141,8 +141,8 @@ export default function EmployeesPage() {
         accessorKey: "full_name",
         cell: ({ row }) => (
           <div>
-            <p className="font-semibold text-slate-950">{row.original.full_name}</p>
-            <p className="text-xs text-slate-500">{row.original.email}</p>
+            <p className="font-semibold text-slate-950 dark:text-white">{row.original.full_name}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{row.original.email}</p>
           </div>
         ),
         header: "Name",
@@ -235,7 +235,7 @@ export default function EmployeesPage() {
       <div className="space-y-5 p-5">
         {feedback ? (
           <div
-            className={feedback.type === "success" ? "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700" : "rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"}
+            className={feedback.type === "success" ? "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300" : "rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300"}
           >
             {feedback.message}
           </div>
@@ -243,10 +243,10 @@ export default function EmployeesPage() {
 
         <Card>
           <CardContent className="grid gap-3 md:grid-cols-[1fr_180px_180px_160px]">
-            <label className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm text-slate-500">
+            <label className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
               <Search className="size-4" />
               <input
-                className="w-full bg-transparent text-slate-950 outline-none placeholder:text-slate-400"
+                className="w-full bg-transparent text-slate-950 outline-none placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500"
                 onChange={(event) => setFilters((value) => ({ ...value, page: 1, search: event.target.value }))}
                 placeholder="Search name, ID, email"
                 value={filters.search}
@@ -274,7 +274,7 @@ export default function EmployeesPage() {
           isLoading={employees.isLoading}
         />
 
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400">
           <Badge>{employees.data?.count ?? 0} records</Badge>
           <div className="flex items-center gap-2">
             <Button disabled={filters.page === 1} onClick={() => setFilters((value) => ({ ...value, page: value.page - 1 }))} variant="outline">

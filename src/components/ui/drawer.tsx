@@ -19,9 +19,9 @@ export function Drawer({ children, onClose, open, title, widthClassName }: Drawe
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/30 backdrop-blur-sm">
       <button aria-label="Close drawer backdrop" className="absolute inset-0 cursor-default" onClick={onClose} type="button" />
-      <aside className={cn("relative h-full w-full max-w-xl overflow-y-auto bg-white shadow-2xl", widthClassName)}>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-5">
-          <h2 className="text-base font-semibold text-slate-950">{title}</h2>
+      <aside className={cn("relative h-full w-full max-w-xl overflow-y-auto bg-white shadow-2xl dark:bg-slate-900 dark:shadow-none", widthClassName)}>
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-5 dark:bg-slate-900 dark:border-slate-800">
+          <h2 className="text-base font-semibold text-slate-950 dark:text-white">{title}</h2>
           <Button aria-label="Close drawer" onClick={onClose} size="icon" variant="ghost">
             <X />
           </Button>

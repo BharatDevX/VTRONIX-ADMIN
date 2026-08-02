@@ -30,10 +30,10 @@ export function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen bg-slate-100 lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="flex min-h-[44vh] flex-col justify-between bg-slate-950 p-8 text-white lg:min-h-screen lg:p-12">
+    <main className="grid min-h-screen bg-slate-100 lg:grid-cols-[1.1fr_0.9fr] dark:bg-slate-950">
+      <section className="flex min-h-[44vh] flex-col justify-between bg-slate-950 p-8 text-white lg:min-h-screen lg:p-12 dark:bg-slate-900">
         <div>
-          <div className="flex size-11 items-center justify-center rounded-xl bg-white text-slate-950">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-white text-slate-950 dark:bg-slate-800 dark:text-slate-200">
             <span className="text-base font-black">V</span>
           </div>
           <h1 className="mt-8 max-w-2xl text-4xl font-semibold tracking-normal lg:text-6xl">Vetronix Admin ERP</h1>
@@ -46,7 +46,7 @@ export function LoginPage() {
 
       <section className="flex items-center justify-center p-6">
         <form
-          className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+          className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900"
           onSubmit={form.handleSubmit(async (values) => {
             setError(null);
             try {
@@ -56,8 +56,8 @@ export function LoginPage() {
             }
           })}
         >
-          <h2 className="text-xl font-semibold text-slate-950">Admin sign in</h2>
-          <p className="mt-1 text-sm text-slate-500">Use your organization admin account.</p>
+          <h2 className="text-xl font-semibold text-slate-950 dark:text-white">Admin sign in</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Use your organization admin account.</p>
 
           <div className="mt-6 grid gap-4">
             <Field error={form.formState.errors.email?.message} label="Email">

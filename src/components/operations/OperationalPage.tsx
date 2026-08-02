@@ -67,10 +67,10 @@ export function OperationalPage<T>({
       <div className="space-y-5 p-5">
         <Card>
           <CardContent className="grid gap-3 md:grid-cols-[1fr_200px_180px]">
-            <label className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm text-slate-500">
+            <label className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
               <Search className="size-4" />
               <input
-                className="w-full bg-transparent text-slate-950 outline-none placeholder:text-slate-400"
+                className="w-full bg-transparent text-slate-950 outline-none placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500"
                 onChange={(event) => setFilters((value) => ({ ...value, page: 1, search: event.target.value }))}
                 placeholder="Search records"
                 value={filters.search}
@@ -94,7 +94,7 @@ export function OperationalPage<T>({
 
         <DataTable columns={columns} data={data} emptyDescription={emptyDescription} emptyTitle={emptyTitle} isLoading={isLoading} />
 
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400">
           <Badge>{count} records</Badge>
           <div className="flex items-center gap-2">
             <Button disabled={filters.page === 1} onClick={() => setFilters((value) => ({ ...value, page: value.page - 1 }))} variant="outline">

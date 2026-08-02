@@ -20,16 +20,16 @@ export default function NotificationsPage() {
         <Card>
           <CardContent>
             {notifications.data && notifications.data.length > 0 ? (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 dark:divide-slate-700">
                 {notifications.data.map((notification) => (
                   <div className="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between" key={notification.id}>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-slate-950">{notification.title}</h3>
+                        <h3 className="text-sm font-semibold text-slate-950 dark:text-white">{notification.title}</h3>
                         <StatusBadge value={notification.is_read ? "read" : "unread"} />
                       </div>
-                      <p className="mt-1 text-sm text-slate-500">{notification.body}</p>
-                      <p className="mt-2 text-xs text-slate-400">{formatDateTime(notification.created_at)}</p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{notification.body}</p>
+                      <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">{formatDateTime(notification.created_at)}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button onClick={() => void markRead.mutateAsync({ id: notification.id, is_read: !notification.is_read })} variant="outline">

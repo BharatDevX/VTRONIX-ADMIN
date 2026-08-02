@@ -40,25 +40,25 @@ export function DataTable<T>({ columns, data, emptyDescription, emptyTitle, isLo
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200">
+    <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50">
+        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
+          <thead className="bg-slate-50 dark:bg-slate-900">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500" key={header.id}>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400" key={header.id}>
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
               </tr>
             ))}
           </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
+          <tbody className="divide-y divide-slate-100 bg-white dark:bg-slate-800 dark:divide-slate-700">
             {table.getRowModel().rows.map((row) => (
-              <tr className={cn("transition hover:bg-slate-50")} key={row.id}>
+              <tr className={cn("transition hover:bg-slate-50 dark:hover:bg-slate-700")} key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <td className="whitespace-nowrap px-4 py-3 text-slate-700" key={cell.id}>
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-700 dark:text-slate-200" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

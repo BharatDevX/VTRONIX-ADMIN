@@ -48,7 +48,7 @@ export default function DashboardPage() {
         <div className="grid gap-5 xl:grid-cols-[1.4fr_0.8fr]">
           <Card>
             <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Sales and attendance trend</h2>
+              <h2 className="text-base font-semibold text-slate-950 dark:text-white">Sales and attendance trend</h2>
             </CardHeader>
             <CardContent className="h-80">
               {trends.isLoading ? <Skeleton className="h-full" /> : trends.data && trends.data.length > 0 ? (
@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <h2 className="text-base font-semibold text-slate-950">Top performers</h2>
+              <h2 className="text-base font-semibold text-slate-950 dark:text-white">Top performers</h2>
             </CardHeader>
             <CardContent className="h-80">
               {performers.isLoading ? <Skeleton className="h-full" /> : performers.data && performers.data.length > 0 ? (
@@ -92,16 +92,16 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <h2 className="text-base font-semibold text-slate-950">Recent activities</h2>
+            <h2 className="text-base font-semibold text-slate-950 dark:text-white">Recent activities</h2>
           </CardHeader>
           <CardContent>
             {activities.isLoading ? <Skeleton className="h-56" /> : activities.data && activities.data.length > 0 ? (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 dark:divide-slate-700">
                 {activities.data.map((activity) => (
                   <div className="flex items-start justify-between gap-4 py-3" key={activity.id}>
                     <div>
-                      <p className="text-sm font-semibold text-slate-950">{activity.title}</p>
-                      <p className="text-sm text-slate-500">{activity.description}</p>
+                      <p className="text-sm font-semibold text-slate-950 dark:text-white">{activity.title}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">{activity.description}</p>
                     </div>
                     <time className="shrink-0 text-xs text-slate-400">{formatDateTime(activity.created_at)}</time>
                   </div>

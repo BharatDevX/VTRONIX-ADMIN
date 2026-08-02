@@ -6,7 +6,7 @@ interface FieldProps {
 
 export function Field({ children, error, label }: FieldProps) {
   return (
-    <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+    <label className="grid gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300">
       <span>{label}</span>
       {children}
       {error ? <span className="text-xs font-medium text-rose-600">{error}</span> : null}
