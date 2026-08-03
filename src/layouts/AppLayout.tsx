@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-
+import logo from "../assets/logo.png";
 import { useAuth } from "@/app/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -64,7 +64,11 @@ export default function AppLayout() {
         )}
       >
         <div className="flex h-16 items-center gap-3 border-b border-slate-200 px-4 dark:border-slate-800">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-sm font-black text-white dark:bg-slate-700">V</div>
+          <img
+  src={logo}
+  alt=""
+  className="h-10 w-10 shrink-0 rounded-xl object-contain"
+/>
           {!collapsed ? (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">Vetronix</p>
