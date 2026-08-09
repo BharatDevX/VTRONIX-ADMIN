@@ -6,6 +6,8 @@ export interface ReportSummary {
   doctor: number;
   employees: number;
   mtp: number;
+  products: number;
+  retailers: number;
   sales: number;
 }
 
@@ -18,12 +20,14 @@ async function countTable(table: string) {
 }
 
 export async function getReportSummary(): Promise<ReportSummary> {
-  const [attendance, dealer, doctor, employees, mtp, sales] = await Promise.all([
+  const [attendance, dealer, doctor, employees, mtp, products, retailers, sales] = await Promise.all([
     countTable("attendance"),
     countTable("dealer_visits"),
     countTable("doctor_visits"),
     countTable("employees"),
     countTable("monthly_tour_programmes"),
+    countTable("products"),
+    countTable("retailers"),
     countTable("sales"),
   ]);
 
@@ -33,6 +37,8 @@ export async function getReportSummary(): Promise<ReportSummary> {
     doctor,
     employees,
     mtp,
+    products,
+    retailers,
     sales,
   };
 }

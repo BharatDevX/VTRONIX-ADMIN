@@ -9,10 +9,12 @@ import { exportCSV, exportExcel, printReport } from "@/services/export.service";
 
 const reportCards = [
   { key: "attendance", label: "Attendance" },
-  { key: "sales", label: "Sales" },
-  { key: "doctor", label: "Doctor" },
-  { key: "dealer", label: "Dealer" },
-  { key: "employees", label: "Employee" },
+  { key: "sales", label: "Order Form" },
+  { key: "doctor", label: "Doctors" },
+  { key: "dealer", label: "Dealers" },
+  { key: "products", label: "Products" },
+  { key: "retailers", label: "Retailers" },
+  { key: "employees", label: "Employees" },
   { key: "mtp", label: "MTP" },
 ] as const;
 

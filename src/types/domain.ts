@@ -70,14 +70,62 @@ export interface SalesRecord {
   employee_name: string;
   branch: string;
   sale_date: string;
-  channel: "counter" | "doctor";
+  channel: "counter" | "doctor" | "retailer" | "farmer";
   customer_name: string;
   doctor_name: string | null;
   dealer_name: string;
+  retailer_name?: string | null;
+  farmer_name?: string | null;
   amount: number;
   product_name: string;
   quantity: number;
   rate: number;
+}
+
+export interface Doctor {
+  id: string;
+  doctor_name: string;
+  specialization: string;
+  city: string;
+  mobile: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Product {
+  id: string;
+  product_name: string;
+  category: string;
+  price: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Retailer {
+  id: string;
+  retailer_name: string;
+  city: string;
+  mobile: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Dealer {
+  id: string;
+  dealer_name: string;
+  contact_person: string;
+  mobile: string;
+  email: string;
+  city: string;
+  state: string;
+  address: string;
+  gst_number: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VisitRecord {
@@ -90,6 +138,20 @@ export interface VisitRecord {
   visit_time: string | null;
   outcome: string;
   next_action: string | null;
+}
+
+export interface DoctorVisitRecord {
+  id: string;
+  employee_id: string;
+  employee_name: string;
+  doctor_name: string;
+  city: string;
+  visit_date: string;
+  discussion: string;
+  reply: string | null;
+  next_followup_date: string | null;
+  status: string | null;
+  created_at: string | null;
 }
 
 export interface MtpRecord {
@@ -130,15 +192,21 @@ export interface NotificationRecord {
 
 export interface DashboardStats {
   totalEmployees: number;
-  presentToday: number;
-  absentToday: number;
-  todaysSales: number;
-  monthlySales: number;
-  doctorVisits: number;
-  dealerVisits: number;
-  todaysKm: number;
   activeEmployees: number;
   inactiveEmployees: number;
+
+  presentToday: number;
+  absentToday: number;
+
+  todaysSales: number;
+  monthlySales: number;
+
+  counterSale: number;
+  doctorSale: number;
+  retailerSale: number;
+  farmerSale: number;
+
+  todaysKm: number;
 }
 
 export interface TrendPoint {
@@ -163,6 +231,32 @@ export interface TopPerformer {
   branch: string;
   revenue: number;
   visits: number;
+}
+
+export interface MtpEntry {
+  id: string;
+  programme_id: string;
+  tour_date: string;
+  day_type: string | null;
+  route_details: string | null;
+  travel_mode: string | null;
+  route_number: string | null;
+  total_km: number;
+  planned_customers: number | null;
+  sequence_number: number | null;
+  status: string | null;
+}
+
+export interface MtpEntrySummary {
+  totalTourDays: number;
+  totalRoutes: number;
+  totalKm: number;
+  totalPlannedCustomers: number;
+}
+
+export interface MtpProgrammeEntriesResponse {
+  entries: MtpEntry[];
+  summary: MtpEntrySummary;
 }
 
 export interface PaginatedQuery {

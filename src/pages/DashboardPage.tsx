@@ -1,4 +1,4 @@
-import { Activity, Bike, IndianRupee, Stethoscope, Store, Users } from "lucide-react";
+import { Activity, Bike, IndianRupee, Users } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, BarChart, Bar } from "recharts";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -9,11 +9,21 @@ import DashboardCard from "@/features/dashboard/components/DashboardCard";
 import { useDashboardStats, useDashboardTrends, useRecentActivities, useTopPerformers } from "@/features/dashboard/useDashboard";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 
+import {
+useEmployeeWiseSales
+} from "@/features/dashboard/useDashboard";
+import { useState } from "react";
 export default function DashboardPage() {
   const stats = useDashboardStats();
   const trends = useDashboardTrends();
   const activities = useRecentActivities();
   const performers = useTopPerformers();
+  const employeeSales = useEmployeeWiseSales();
+console.log("Employee Sales:", employeeSales.data);
+console.log("Loading:", employeeSales.isLoading);
+console.log("Error:", employeeSales.error);
+const [selectedEmployee, setSelectedEmployee] =
+useState("");
 
   return (
     <div>
@@ -37,8 +47,33 @@ export default function DashboardPage() {
             <DashboardCard accent="bg-rose-600" title="Absent Today" value={stats.data.absentToday} />
             <DashboardCard accent="bg-indigo-600" icon={<IndianRupee />} title="Today's Sales" value={formatCurrency(stats.data.todaysSales)} />
             <DashboardCard accent="bg-cyan-600" icon={<IndianRupee />} title="Monthly Sales" value={formatCurrency(stats.data.monthlySales)} />
-            <DashboardCard accent="bg-violet-600" icon={<Stethoscope />} title="Doctor Visits" value={stats.data.doctorVisits} />
-            <DashboardCard accent="bg-amber-600" icon={<Store />} title="Dealer Visits" value={stats.data.dealerVisits} />
+            <DashboardCard
+accent="bg-violet-600"
+icon={<IndianRupee />}
+title="Counter Sale"
+value={formatCurrency(stats.data.counterSale)}
+/>
+
+<DashboardCard
+accent="bg-emerald-600"
+icon={<IndianRupee />}
+title="Doctor Sale"
+value={formatCurrency(stats.data.doctorSale)}
+/>
+
+<DashboardCard
+accent="bg-cyan-600"
+icon={<IndianRupee />}
+title="Retailer Sale"
+value={formatCurrency(stats.data.retailerSale)}
+/>
+
+<DashboardCard
+accent="bg-orange-600"
+icon={<IndianRupee />}
+title="Farmer Sale"
+value={formatCurrency(stats.data.farmerSale)}
+/>
             <DashboardCard accent="bg-teal-600" icon={<Bike />} title="Today's KM" value={`${Math.round(stats.data.todaysKm)} KM`} />
             <DashboardCard title="Active Employees" value={stats.data.activeEmployees} />
             <DashboardCard accent="bg-slate-500" title="Inactive Employees" value={stats.data.inactiveEmployees} />
@@ -67,6 +102,67 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
+          <Card>
+<CardHeader>
+
+<h2 className="text-base font-semibold">
+
+Employee Wise Sale
+
+</h2>
+
+</CardHeader>
+
+<CardContent>
+
+<select
+  className="w-full rounded-lg border p-2"
+  value={selectedEmployee}
+  onChange={(e)=>setSelectedEmployee(e.target.value)}
+>
+  <option value="">Select Employee</option>
+
+  {employeeSales.data?.map(emp=>(
+    <option
+      key={emp.employee_id}
+      value={emp.employee_id}
+    >
+      {emp.employee_name}
+    </option>
+  ))}
+</select>
+
+{selectedEmployee && (
+
+<div className="mt-6 rounded-xl border p-5">
+
+<p className="text-sm text-slate-500">
+
+Current Month Sale
+
+</p>
+
+<h2 className="mt-2 text-3xl font-bold">
+
+{formatCurrency(
+
+employeeSales.data?.find(
+
+e=>e.employee_id===selectedEmployee
+
+)?.amount ??0
+
+)}
+
+</h2>
+
+</div>
+
+)}
+
+</CardContent>
+
+</Card>
 
           <Card>
             <CardHeader>

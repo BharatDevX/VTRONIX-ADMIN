@@ -12,7 +12,9 @@ export function StatusBadge({ value }: StatusBadgeProps) {
     ? "success"
     : normalized.includes("pending") || normalized.includes("late") || normalized.includes("leave")
       ? "warning"
-      : "neutral";
+      : normalized.includes("submitted")
+        ? "info"
+        : "neutral";
 
   return <Badge tone={tone}>{typeof value === "boolean" ? (value ? "Active" : "Inactive") : value}</Badge>;
 }

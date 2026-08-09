@@ -31,19 +31,22 @@ export default function SalesPage() {
       columns={columns}
       count={sales.data?.count ?? 0}
       data={sales.data?.data ?? []}
-      description="Primary and secondary sales, products, invoices, targets, and revenue export."
-      emptyDescription="Sales submitted by medical representatives will appear here."
-      emptyTitle="No sales found"
-      exportFilename="sales.csv"
+      description="Order form entries across counter, doctor, retailer, and farmer sales with filtering and exports."
+      emptyDescription="Order form records submitted from the mobile app will appear here."
+      emptyTitle="No order forms found"
+      exportFilename="order-form.csv"
       filters={filters}
       isLoading={sales.isLoading}
-      rowsForExport={(records) => records.map((record) => ({ amount: record.amount, channel: record.channel, customer: record.customer_name, date: record.sale_date, dealer: record.dealer_name, employee: record.employee_name, product: record.product_name, quantity: record.quantity, rate: record.rate }))}
+      rowsForExport={(records) => records.map((record) => ({ amount: record.amount, channel: record.channel, customer: record.customer_name, date: record.sale_date, dealer: record.dealer_name, employee: record.employee_name, product: record.product_name, quantity: record.quantity, rate: record.rate, retailer: record.retailer_name ?? "", farmer: record.farmer_name ?? "" }))}
       setFilters={setFilters}
       statusOptions={[
+        { label: "All", value: "all" },
         { label: "Counter", value: "counter" },
         { label: "Doctor", value: "doctor" },
+        { label: "Retailer", value: "retailer" },
+        { label: "Farmer", value: "farmer" },
       ]}
-      title="Sales"
+      title="Order Form"
     />
   );
 }

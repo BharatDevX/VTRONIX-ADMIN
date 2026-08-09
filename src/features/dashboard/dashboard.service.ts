@@ -22,35 +22,95 @@ async function sumSales(fromDate: string) {
   }
   return ((data ?? []) as Array<{ amount: number | null }>).reduce((total, row) => total + Number(row.amount ?? 0), 0);
 }
+async function getSalesByType(
+  saleType: string,
+  fromDate?: string,
+) {
+  let query = supabase
+    .from("sales")
+    .select("amount")
+    .eq("sale_type", saleType);
+
+  if (fromDate) {
+    query = query.gte("sale_date", fromDate);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  return (data ?? []).reduce(
+    (sum, row: any) => sum + Number(row.amount ?? 0),
+    0
+  );
+}
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   const today = todayIsoDate();
   const month = `${monthIsoPrefix()}-01`;
 
   const [
-    totalEmployees,
-    activeEmployees,
-    inactiveEmployees,
-    presentToday,
-    absentToday,
-    todaysSales,
-    monthlySales,
-    doctorVisits,
-    dealerVisits,
-    workSessions,
-  ] = await Promise.all([
-    countRows("employees"),
-    countRows("employees", { is_active: true }),
-    countRows("employees", { is_active: false }),
-    countRows("attendance", { attendance_date: today, status: "PRESENT" }),
-    countRows("attendance", { attendance_date: today, status: "ABSENT" }),
-    sumSales(today),
-    sumSales(month),
-    countRows("doctor_visits", { visit_date: today }),
-    countRows("dealer_visits", { visit_date: today }),
-    supabase.from("work_sessions").select("total_km").eq("work_date", today),
-  ]);
 
+totalEmployees,
+
+activeEmployees,
+
+inactiveEmployees,
+
+presentToday,
+
+absentToday,
+
+todaysSales,
+
+monthlySales,
+
+counterSale,
+
+doctorSale,
+
+retailerSale,
+
+farmerSale,
+
+workSessions,
+
+] = await Promise.all([
+
+countRows("employees"),
+
+countRows("employees",{is_active:true}),
+
+countRows("employees",{is_active:false}),
+
+countRows("attendance",{
+attendance_date:today,
+status:"PRESENT"
+}),
+
+countRows("attendance",{
+attendance_date:today,
+status:"ABSENT"
+}),
+
+sumSales(today),
+
+sumSales(month),
+
+getSalesByType("COUNTER",month),
+
+getSalesByType("DOCTOR",month),
+
+getSalesByType("RETAILER",month),
+
+getSalesByType("FARMER",month),
+
+supabase
+.from("work_sessions")
+.select("total_km")
+.eq("work_date",today),
+
+]);
   if (workSessions.error) {
     throw workSessions.error;
   }
@@ -60,11 +120,17 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   return {
     absentToday,
     activeEmployees,
-    dealerVisits,
-    doctorVisits,
     inactiveEmployees,
     monthlySales,
     presentToday,
+    counterSale,
+    
+
+doctorSale,
+
+retailerSale,
+
+farmerSale,
     todaysKm,
     todaysSales,
     totalEmployees,
@@ -177,14 +243,56 @@ export async function getTopPerformers(): Promise<TopPerformer[]> {
 
   const employees = await getEmployeesByIds(Array.from(totals.keys()));
 
-  return Array.from(totals.entries())
-    .map(([employeeId, revenue]) => ({
+ return Array.from(totals.entries())
+  .map(([employeeId, revenue]) => {
+    const saleCount = (data ?? []).filter(
+      (row: any) => row.employee_id === employeeId
+    ).length;
+
+    return {
       branch: employees.get(employeeId)?.branch ?? "-",
       employee_id: employeeId,
-      employee_name: employees.get(employeeId)?.full_name ?? "Unknown employee",
+      employee_name:
+        employees.get(employeeId)?.full_name ??
+        "Unknown Employee",
       revenue,
-      visits: 0,
+      visits: saleCount,
+    };
+  })
+  .sort((a, b) => b.revenue - a.revenue)
+  .slice(0, 5);
+}
+export async function getEmployeeWiseSales() {
+  const month = `${monthIsoPrefix()}-01`;
+
+  const { data, error } = await supabase
+    .from("sales")
+    .select("employee_id, amount")
+    .gte("sale_date", month);
+
+  if (error) throw error;
+
+  const totals = new Map<string, number>();
+
+  (data ?? []).forEach((row: any) => {
+    totals.set(
+      row.employee_id,
+      (totals.get(row.employee_id) ?? 0) +
+        Number(row.amount ?? 0)
+    );
+  });
+
+  const employees = await getEmployeesByIds(
+    Array.from(totals.keys())
+  );
+
+  return Array.from(totals.entries())
+    .map(([employeeId, amount]) => ({
+      employee_id: employeeId,
+      employee_name:
+        employees.get(employeeId)?.full_name ??
+        "Unknown Employee",
+      amount,
     }))
-    .sort((left, right) => right.revenue - left.revenue)
-    .slice(0, 5);
+    .sort((a, b) => b.amount - a.amount);
 }
