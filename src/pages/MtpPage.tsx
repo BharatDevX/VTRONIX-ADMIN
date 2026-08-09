@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { OperationalPage } from "@/components/operations/OperationalPage";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { MtpEntriesDrawer } from "../features/mtp/mtpentriesdrawer";
+import { MtpEntriesDrawer } from "@/features/mtp/MtpEntriesDrawer";
 import { useMtpRecords, useUpdateMtpStatus } from "@/features/mtp/hooks";
 import { formatDateTime } from "@/lib/format";
 import type { MtpRecord, PaginatedQuery } from "@/types/domain";
