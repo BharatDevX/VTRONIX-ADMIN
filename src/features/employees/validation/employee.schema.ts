@@ -19,14 +19,18 @@ export const employeeSchema = z.object({
   branch: z
     .string()
     .trim()
-    .min(2, "Branch is required"),
+    .optional()
+    .or(z.literal("")),
 
   mobile: z
     .string()
     .regex(/^[0-9]{10}$/, "Enter valid mobile number"),
 
   email: z
-    .email("Enter valid email"),
+    .string()
+    .trim()
+    .email("Enter valid email")
+    .or(z.literal("")),
 
   password: z
     .string()
@@ -35,6 +39,9 @@ export const employeeSchema = z.object({
 
 export type EmployeeFormData = z.infer<typeof employeeSchema>;
 
-export const employeeEditSchema = employeeSchema.omit({ employee_id: true, password: true });
+export const employeeEditSchema = employeeSchema.omit({
+  employee_id: true,
+  password: true,
+});
 
 export type EmployeeEditFormData = z.infer<typeof employeeEditSchema>;

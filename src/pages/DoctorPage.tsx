@@ -20,7 +20,7 @@ import type { Doctor, PaginatedQuery } from "@/types/domain";
 
 const DoctorSchema = z.object({
   doctor_name: z.string().trim().min(3, "Doctor name is required"),
-  specialization: z.string().trim().min(2, "Specialization is required"),
+  specialization: z.string().trim(),
   city: z.string().trim().min(2, "City is required"),
   mobile: z.string().trim().regex(/^[0-9]{10}$/, "Enter valid mobile number"),
   is_active: z.boolean().default(true),

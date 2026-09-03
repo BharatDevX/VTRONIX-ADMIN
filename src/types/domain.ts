@@ -10,9 +10,10 @@ export interface Employee {
   employee_id: string;
   full_name: string;
   designation: string;
-  branch: string;
+  branch: string | null;
   mobile: string;
-  email: string;
+  email: string | null;
+  auth_email?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -36,15 +37,16 @@ export interface EmployeeCreateInput {
   employee_id: string;
   full_name: string;
   designation: string;
-  branch: string;
+  branch?: string | null;
   mobile: string;
-  email: string;
+  email?: string | null;
   password: string;
 }
 
-export type EmployeeUpdateInput = Partial<Omit<EmployeeCreateInput, "password" | "employee_id">> & {
-  is_active?: boolean;
-};
+export type EmployeeUpdateInput =
+  Partial<Omit<EmployeeCreateInput, "password" | "employee_id">> & {
+    is_active?: boolean;
+  };
 
 export type AttendanceStatus = "present" | "absent" | "late" | "leave";
 
@@ -85,7 +87,7 @@ export interface SalesRecord {
 export interface Doctor {
   id: string;
   doctor_name: string;
-  specialization: string;
+  specialization?: string;
   city: string;
   mobile: string;
   is_active: boolean;

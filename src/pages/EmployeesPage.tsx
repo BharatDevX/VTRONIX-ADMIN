@@ -39,9 +39,9 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
   const form = useForm<EmployeeFormData | EmployeeEditFormData>({
     defaultValues: employee
       ? {
-          branch: employee.branch,
+          
           designation: employee.designation,
-          email: employee.email,
+          
           full_name: employee.full_name,
           mobile: employee.mobile,
         }
@@ -124,6 +124,10 @@ export default function EmployeesPage() {
   const toggleStatus = useToggleEmployeeStatus();
   const resetPassword = useResetEmployeePassword();
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+  const [temporaryPassword, setTemporaryPassword] = useState<{
+  employeeName: string;
+  password: string;
+} | null>(null);
 
   useEffect(() => {
     if (!feedback) {
@@ -174,9 +178,36 @@ export default function EmployeesPage() {
             >
               <Edit3 />
             </Button>
-            <Button onClick={() => void resetPassword.mutateAsync(row.original.id)} size="icon" title="Reset password" variant="ghost">
-              <KeyRound />
-            </Button>
+            <Button
+  disabled={resetPassword.isPending}
+  onClick={async () => {
+    try {
+      const result = await resetPassword.mutateAsync(row.original.id);
+
+      if (!result?.temporaryPassword) {
+        throw new Error("Password reset succeeded but no temporary password was returned.");
+      }
+
+      setTemporaryPassword({
+        employeeName: row.original.full_name,
+        password: result.temporaryPassword,
+      });
+    } catch (error) {
+      setFeedback({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to reset password.",
+        type: "error",
+      });
+    }
+  }}
+  size="icon"
+  title="Reset password"
+  variant="ghost"
+>
+  <KeyRound />
+</Button>
             <Button
               onClick={() => void toggleStatus.mutateAsync({ id: row.original.id, is_active: !row.original.is_active })}
               size="icon"
@@ -240,6 +271,37 @@ export default function EmployeesPage() {
             {feedback.message}
           </div>
         ) : null}
+        {temporaryPassword ? (
+  <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 dark:border-amber-800 dark:bg-amber-950/40">
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="font-semibold text-amber-900 dark:text-amber-200">
+          Password reset successfully
+        </p>
+
+        <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">
+          {temporaryPassword.employeeName}'s temporary password:
+        </p>
+
+        <code className="mt-2 block rounded-lg bg-white px-3 py-2 font-mono text-sm font-semibold text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white">
+          {temporaryPassword.password}
+        </code>
+
+        <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+          Share this password securely with the employee.
+        </p>
+      </div>
+
+      <Button
+        onClick={() => setTemporaryPassword(null)}
+        size="sm"
+        variant="outline"
+      >
+        Close
+      </Button>
+    </div>
+  </div>
+) : null}
 
         <Card>
           <CardContent className="grid gap-3 md:grid-cols-[1fr_180px_180px_160px]">

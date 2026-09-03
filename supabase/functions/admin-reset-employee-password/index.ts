@@ -53,7 +53,8 @@ serve(async (req) => {
       return jsonResponse({ error: { message: employeeError?.message ?? "Employee auth profile not found." } }, 400);
     }
 
-    const tempPassword = `Temp${Math.random().toString(36).slice(2, 8)}!`;
+    const randomPart = crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+const tempPassword = `Temp${randomPart}!`;
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(employeeRow.auth_id, {
       password: tempPassword,
     });
