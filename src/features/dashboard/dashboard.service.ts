@@ -45,6 +45,29 @@ async function getSalesByType(
   );
 }
 
+async function getReceivableTotals(month: number, year: number) {
+  const { data, error } = await supabase
+    .from("hq_receivables")
+    .select("paid_amount, overdue_amount")
+    .eq("month", month)
+    .eq("year", year);
+
+  if (error) {
+    if (typeof error === "object" && error !== null && "code" in error && String((error as any).code) === "42P01") {
+      return { totalPaidAmount: 0, totalOverdueAmount: 0 };
+    }
+    throw error;
+  }
+
+  return (data ?? []).reduce(
+    (acc: { totalPaidAmount: number; totalOverdueAmount: number }, row: any) => ({
+      totalPaidAmount: acc.totalPaidAmount + Number(row.paid_amount ?? 0),
+      totalOverdueAmount: acc.totalOverdueAmount + Number(row.overdue_amount ?? 0),
+    }),
+    { totalPaidAmount: 0, totalOverdueAmount: 0 },
+  );
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const today = todayIsoDate();
   const month = `${monthIsoPrefix()}-01`;
@@ -74,6 +97,8 @@ retailerSale,
 farmerSale,
 
 workSessions,
+
+receivableTotals,
 
 ] = await Promise.all([
 
@@ -110,6 +135,8 @@ supabase
 .select("total_km")
 .eq("work_date",today),
 
+getReceivableTotals(new Date().getMonth() + 1, new Date().getFullYear()),
+
 ]);
   if (workSessions.error) {
     throw workSessions.error;
@@ -134,6 +161,8 @@ farmerSale,
     todaysKm,
     todaysSales,
     totalEmployees,
+    totalPaidAmount: receivableTotals.totalPaidAmount,
+    totalOverdueAmount: receivableTotals.totalOverdueAmount,
   };
 }
 

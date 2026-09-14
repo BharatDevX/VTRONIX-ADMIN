@@ -209,6 +209,9 @@ export interface DashboardStats {
   farmerSale: number;
 
   todaysKm: number;
+
+  totalPaidAmount: number;
+  totalOverdueAmount: number;
 }
 
 export interface TrendPoint {

@@ -22,6 +22,10 @@ export function CardHeader({ children, className }: CardProps) {
   return <div className={cn("border-b border-slate-100 p-5", className)}>{children}</div>;
 }
 
+export function CardTitle({ children, className }: CardProps) {
+  return <h2 className={cn("text-base font-semibold", className)}>{children}</h2>;
+}
+
 export function CardContent({ children, className }: CardProps) {
   return <div className={cn("p-5", className)}>{children}</div>;
 }

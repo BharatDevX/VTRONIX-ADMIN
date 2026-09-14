@@ -21,6 +21,9 @@ const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
 const ReportsPage = lazy(() => import("@/pages/ReportsPage"));
 const RetailersPage = lazy(() => import("@/pages/RetailersPage"));
 const SalesPage = lazy(() => import("@/pages/SalesPage"));
+const SalesTargetsPage = lazy(() => import("@/pages/SalesTargetsPage"));
+const HqReceivablesPage = lazy(() => import("@/pages/HqReceivablesPage"));
+const FollowUpsPage = lazy(() => import("@/pages/FollowUpsPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const TrackingPage = lazy(() => import("@/pages/TrackingPage"));
 
@@ -54,6 +57,9 @@ export default function AppRoutes() {
           <Route element={<LazyPage><RetailersPage /></LazyPage>} path="retailers" />
           <Route element={<LazyPage><ProductsPage /></LazyPage>} path="products" />
           <Route element={<LazyPage><SalesPage /></LazyPage>} path="sales" />
+          <Route element={<LazyPage><SalesTargetsPage /></LazyPage>} path="sales-targets" />
+          <Route element={<LazyPage><HqReceivablesPage /></LazyPage>} path="hq-receivables" />
+          <Route element={<LazyPage><FollowUpsPage /></LazyPage>} path="follow-ups" />
           <Route element={<LazyPage><MtpPage /></LazyPage>} path="mtp" />
           <Route element={<LazyPage><TrackingPage /></LazyPage>} path="tracking" />
           <Route element={<LazyPage><ReportsPage /></LazyPage>} path="reports" />

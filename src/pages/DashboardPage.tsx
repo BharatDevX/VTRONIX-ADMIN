@@ -47,6 +47,8 @@ useState("");
             <DashboardCard accent="bg-rose-600" title="Absent Today" value={stats.data.absentToday} />
             <DashboardCard accent="bg-indigo-600" icon={<IndianRupee />} title="Today's Sales" value={formatCurrency(stats.data.todaysSales)} />
             <DashboardCard accent="bg-cyan-600" icon={<IndianRupee />} title="Monthly Sales" value={formatCurrency(stats.data.monthlySales)} />
+            <DashboardCard accent="bg-emerald-600" icon={<IndianRupee />} title="Total Paid Amount" value={formatCurrency(stats.data.totalPaidAmount)} />
+            <DashboardCard accent="bg-rose-600" icon={<IndianRupee />} title="Total Overdue Amount" value={formatCurrency(stats.data.totalOverdueAmount)} />
             <DashboardCard
 accent="bg-violet-600"
 icon={<IndianRupee />}

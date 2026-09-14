@@ -10,6 +10,8 @@ interface SalesRow {
   employee_id: string;
   id: string;
   product_id: string;
+  pack_size: string | null;
+  box_count: number | null;
   quantity: number;
   rate: number;
   sale_date: string;
@@ -57,6 +59,8 @@ export async function getSales(params: PaginatedQuery): Promise<PaginatedRespons
         employee_name: employee?.full_name ?? "Unknown employee",
         id: row.id,
         product_name: product?.product_name ?? "Unknown product",
+        pack_size: row.pack_size ?? null,
+        box_count: row.box_count == null ? null : Number(row.box_count),
         quantity: Number(row.quantity),
         rate: Number(row.rate),
         sale_date: row.sale_date,

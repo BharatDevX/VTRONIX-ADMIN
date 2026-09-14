@@ -22,6 +22,10 @@ const ProductSchema = z.object({
   product_name: z.string().trim().min(3, "Product name is required"),
   category: z.string().trim().min(2, "Category is required"),
   price: z.number().min(0, "Price must be positive"),
+  pack_size: z.number().nullable().optional(),
+  pack_uom: z.string().optional(),
+  box_size: z.number().nullable().optional(),
+  box_uom: z.string().optional(),
   is_active: z.boolean().default(true),
 });
 
@@ -38,9 +42,13 @@ function ProductForm({ product, onDone, onFeedback }: { product?: Product; onDon
           product_name: product.product_name,
           category: product.category,
           price: product.price,
+          pack_size: product.pack_size ?? null,
+          pack_uom: product.pack_uom ?? "",
+          box_size: product.box_size ?? null,
+          box_uom: product.box_uom ?? "",
           is_active: product.is_active,
         }
-      : { product_name: "", category: "", price: 0, is_active: true },
+      : { product_name: "", category: "", price: 0, pack_size: null, pack_uom: "", box_size: null, box_uom: "", is_active: true },
     resolver: zodResolver(ProductSchema) as any,
   });
 
@@ -70,6 +78,12 @@ function ProductForm({ product, onDone, onFeedback }: { product?: Product; onDon
       <Field label="Price" error={form.formState.errors.price?.message}>
         <input className={inputClassName()} type="number" step="0.01" {...form.register("price", { valueAsNumber: true })} />
       </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Pack size"><input className={inputClassName()} type="number" step="0.01" {...form.register("pack_size", { valueAsNumber: true })} /></Field>
+        <Field label="Pack UOM"><input className={inputClassName()} {...form.register("pack_uom")} /></Field>
+        <Field label="Box size"><input className={inputClassName()} type="number" step="0.01" {...form.register("box_size", { valueAsNumber: true })} /></Field>
+        <Field label="Box UOM"><input className={inputClassName()} {...form.register("box_uom")} /></Field>
+      </div>
       <div className="flex items-center gap-3">
         <input className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600" id="active" type="checkbox" {...form.register("is_active")} />
         <label htmlFor="active" className="text-sm text-slate-600 dark:text-slate-300">
@@ -102,6 +116,8 @@ export default function ProductsPage() {
     () => [
       { accessorKey: "product_name", header: "Name" },
       { accessorKey: "category", header: "Category" },
+      { accessorKey: "pack_size", header: "Pack" },
+      { accessorKey: "box_size", header: "Box" },
       { accessorKey: "price", cell: ({ row }: any) => `₹${row.original.price.toFixed(2)}`, header: "Price" },
       { accessorKey: "is_active", cell: ({ row }: any) => <StatusBadge value={row.original.is_active} />, header: "Status" },
       { accessorKey: "created_at", cell: ({ row }: any) => formatDate(row.original.created_at), header: "Created" },

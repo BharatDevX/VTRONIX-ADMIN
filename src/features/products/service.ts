@@ -6,6 +6,11 @@ interface ProductRow {
   product_name: string;
   category: string | null;
   price: number | null;
+  pack_size: number | null;
+  pack_uom: string | null;
+  box_size: number | null;
+  box_uom: string | null;
+  packaging_options: Array<{ pack_size: number; pack_uom: string; box_size: number; box_uom: string }> | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -44,6 +49,11 @@ export async function getProducts(params: PaginatedQuery): Promise<PaginatedResp
       product_name: row.product_name,
       category: row.category ?? "-",
       price: Number(row.price ?? 0),
+      pack_size: row.pack_size == null ? null : Number(row.pack_size),
+      pack_uom: row.pack_uom ?? null,
+      box_size: row.box_size == null ? null : Number(row.box_size),
+      box_uom: row.box_uom ?? null,
+      packaging_options: row.packaging_options ?? null,
       is_active: row.is_active,
       created_at: row.created_at,
       updated_at: row.updated_at,
@@ -66,6 +76,11 @@ export async function createProduct(payload: Omit<Product, "id" | "created_at" |
     product_name: payload.product_name,
     category: payload.category,
     price: payload.price,
+    pack_size: payload.pack_size ?? null,
+    pack_uom: payload.pack_uom ?? null,
+    box_size: payload.box_size ?? null,
+    box_uom: payload.box_uom ?? null,
+    packaging_options: payload.packaging_options ?? null,
     is_active: payload.is_active,
   }).select().single();
 
