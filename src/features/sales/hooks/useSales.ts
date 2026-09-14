@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { getSales, saveSale as saveSaleService } from "../services/sales.service";
-import { Sale, SaleForm } from "../types/sales.types";
+import type { Sale, SaleForm } from "../types/sales.types";
 import { useSalesStore } from "../store/sales.store";
 
 interface SaveResult {

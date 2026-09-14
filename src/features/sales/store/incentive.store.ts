@@ -1,6 +1,6 @@
 import {create} from "zustand";
 
-import {IncentiveDashboard}
+import type {IncentiveDashboard}
 
 from "../types/incentive.types";
 

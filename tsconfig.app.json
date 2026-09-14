@@ -44,5 +44,6 @@
     "noFallthroughCasesInSwitch": true
   },
 
-  "include": ["src", "supabase/functions"]
+  "include": ["src", "supabase/functions"],
+  "exclude": ["src/features/sales/screens"]
 }

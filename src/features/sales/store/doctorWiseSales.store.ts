@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { DoctorWiseSaleReport } from "../types/doctorWiseSales.types";
+import type { DoctorWiseSaleReport } from "../types/doctorWiseSales.types";
 
 interface State {
 

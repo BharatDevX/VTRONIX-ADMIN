@@ -1,5 +1,5 @@
-import { supabase } from "../../../services/supabase/supabase";
-import { CounterSaleReport } from "../types/counterSale.types";
+import { supabase } from "../../../services/supabase";
+import type { CounterSaleReport } from "../types/counterSale.types";
 
 interface RelatedName {
   dealer_name?: string | null;

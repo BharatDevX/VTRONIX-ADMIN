@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { SecondarySale } from "../types/secondarySales.types";
+import type { SecondarySale } from "../types/secondarySales.types";
 
 interface State {
 

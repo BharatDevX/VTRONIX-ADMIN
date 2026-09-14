@@ -1,5 +1,5 @@
-import { supabase } from "../../../services/supabase/supabase";
-import { DoctorWiseSaleReport } from "../types/doctorWiseSales.types";
+import { supabase } from "../../../services/supabase";
+import type { DoctorWiseSaleReport } from "../types/doctorWiseSales.types";
 
 interface SaleRow {
   id: string;

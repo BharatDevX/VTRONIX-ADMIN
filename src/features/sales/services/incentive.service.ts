@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
-import { supabase } from "../../../services/supabase/supabase";
-import { IncentiveDashboard } from "../types/incentive.types";
+import { supabase } from "../../../services/supabase";
+import type { IncentiveDashboard } from "../types/incentive.types";
 
 interface IncentiveSaleRow {
   amount: number | null;

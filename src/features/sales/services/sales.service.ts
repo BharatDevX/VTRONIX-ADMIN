@@ -1,5 +1,5 @@
-import { supabase } from "../../../services/supabase/supabase";
-import { Sale, SaleForm, SaleType } from "../types/sales.types";
+import { supabase } from "../../../services/supabase";
+import type { Sale, SaleForm, SaleType } from "../types/sales.types";
 
 interface SalePayload {
   employee_id: string;

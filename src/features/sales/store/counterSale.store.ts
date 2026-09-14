@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { CounterSaleReport } from "../types/counterSale.types";
+import type { CounterSaleReport } from "../types/counterSale.types";
 
 interface State {
 
