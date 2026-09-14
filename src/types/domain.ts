@@ -80,6 +80,8 @@ export interface SalesRecord {
   farmer_name?: string | null;
   amount: number;
   product_name: string;
+  pack_size: string | null;
+  box_count: number | null;
   quantity: number;
   rate: number;
 }
@@ -100,6 +102,11 @@ export interface Product {
   product_name: string;
   category: string;
   price: number;
+  pack_size?: number | null;
+  pack_uom?: string | null;
+  box_size?: number | null;
+  box_uom?: string | null;
+  packaging_options?: Array<{ pack_size: number; pack_uom: string; box_size: number; box_uom: string }> | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
