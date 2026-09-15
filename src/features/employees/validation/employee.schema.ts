@@ -16,11 +16,9 @@ export const employeeSchema = z.object({
     .trim()
     .min(2, "Designation is required"),
 
-  branch: z
-    .string()
-    .trim()
-    .optional()
-    .or(z.literal("")),
+  branch: z.string().trim().optional().or(z.literal("")),
+
+  head_quarters: z.array(z.string().trim().min(1)).default([]),
 
   mobile: z
     .string()

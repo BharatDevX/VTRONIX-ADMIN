@@ -7,6 +7,7 @@ interface DoctorRow {
   specialization: string | null;
   city: string | null;
   mobile: string | null;
+  head_quarters: string[] | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -48,6 +49,7 @@ export async function getDoctors(params: PaginatedQuery): Promise<PaginatedRespo
       specialization: row.specialization ?? "-",
       city: row.city ?? "-",
       mobile: row.mobile ?? "-",
+      head_quarters: row.head_quarters ?? [],
       is_active: row.is_active,
       created_at: row.created_at,
       updated_at: row.updated_at,
@@ -75,6 +77,7 @@ export async function createDoctor(payload: Omit<Doctor, "id" | "created_at" | "
     specialization: payload.specialization,
     city: payload.city,
     mobile: payload.mobile,
+    head_quarters: payload.head_quarters ?? [],
     is_active: payload.is_active,
   }).select().single();
 

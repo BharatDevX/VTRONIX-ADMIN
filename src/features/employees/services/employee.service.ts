@@ -20,7 +20,7 @@ export async function getEmployees(filters: EmployeeFilters): Promise<EmployeeLi
   }
 
   if (branch.trim()) {
-    query = query.eq("branch", branch);
+    query = query.contains("head_quarters", [branch.trim()]);
   }
 
   if (designation.trim()) {
@@ -56,8 +56,10 @@ export async function getEmployeeById(id: string) {
 }
 
 export async function createEmployee(payload: CreateEmployeeDTO) {
+  const normalizedHeadQuarters = Array.from(new Set((payload.head_quarters ?? []).map((value) => value.trim()).filter(Boolean)));
+  const body = { ...payload, head_quarters: normalizedHeadQuarters, branch: payload.branch?.trim() || normalizedHeadQuarters[0] || null };
   const { data, error } = await supabase.functions.invoke("admin-create-employee", {
-    body: payload,
+    body,
   });
 
   if (error) {
@@ -73,7 +75,9 @@ export async function createEmployee(payload: CreateEmployeeDTO) {
 }
 
 export async function updateEmployee(id: string, payload: UpdateEmployeeDTO) {
-  const { data, error } = await supabase.from(TABLE).update(payload).eq("id", id).select().single();
+  const normalizedHeadQuarters = payload.head_quarters ? Array.from(new Set(payload.head_quarters.map((value) => value.trim()).filter(Boolean))) : undefined;
+  const nextPayload = { ...payload, ...(normalizedHeadQuarters ? { head_quarters: normalizedHeadQuarters, branch: normalizedHeadQuarters[0] || null } : {}) };
+  const { data, error } = await supabase.from(TABLE).update(nextPayload).eq("id", id).select().single();
 
   if (error) {
     throw error;

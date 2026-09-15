@@ -41,12 +41,14 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
       ? {
           
           designation: employee.designation,
-          
+          branch: employee.branch ?? "",
+          head_quarters: employee.head_quarters ?? (employee.branch ? [employee.branch] : []),
           full_name: employee.full_name,
           mobile: employee.mobile,
         }
       : {
           branch: "",
+          head_quarters: [],
           designation: "",
           email: "",
           employee_id: "",
@@ -54,7 +56,7 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
           mobile: "",
           password: "",
         },
-    resolver: zodResolver(employee ? employeeEditSchema : employeeSchema),
+    resolver: zodResolver(employee ? employeeEditSchema : employeeSchema) as any,
   });
   const createErrors = form.formState.errors as Partial<Record<keyof EmployeeFormData, { message?: string }>>;
   const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;
@@ -65,10 +67,10 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
       onSubmit={form.handleSubmit(async (values) => {
         try {
           if (employee) {
-            await updateMutation.mutateAsync({ id: employee.id, payload: values as EmployeeEditFormData });
+            await updateMutation.mutateAsync({ id: employee.id, payload: values as unknown as EmployeeEditFormData });
             onFeedback({ message: "Employee updated successfully.", type: "success" });
           } else {
-            await createMutation.mutateAsync(values as EmployeeFormData);
+            await createMutation.mutateAsync(values as unknown as EmployeeFormData);
             onFeedback({ message: "Employee created successfully. They can sign in immediately with their employee ID and password.", type: "success" });
           }
           onDone();
@@ -92,8 +94,9 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
         <Field error={form.formState.errors.designation?.message} label="Designation">
           <input className={inputClassName()} {...form.register("designation")} />
         </Field>
-        <Field error={form.formState.errors.branch?.message} label="Branch">
-          <input className={inputClassName()} {...form.register("branch")} />
+        <Field label="Head Quarter(s)" error={form.formState.errors.head_quarters?.message as string | undefined}>
+          <input className={inputClassName()} value={(form.watch("head_quarters") ?? []).join(", ")} onChange={(event) => form.setValue("head_quarters", event.target.value.split(",").map((value) => value.trim()).filter(Boolean), { shouldValidate: true })} placeholder="Jaipur, Kota, Ajmer" />
+          <p className="mt-1 text-xs text-slate-500">Enter multiple Head Quarters separated by commas.</p>
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -152,7 +155,7 @@ export default function EmployeesPage() {
         header: "Name",
       },
       { accessorKey: "designation", header: "Designation" },
-      { accessorKey: "branch", header: "Branch" },
+      { accessorKey: "head_quarters", cell: ({ row }) => (row.original.head_quarters ?? []).join(", ") || row.original.branch || "—", header: "Head Quarter(s)" },
       { accessorKey: "mobile", header: "Mobile" },
       {
         accessorKey: "is_active",
@@ -234,7 +237,7 @@ export default function EmployeesPage() {
                 exportCSV(
                   "employees.csv",
                   (employees.data?.data ?? []).map((employee) => ({
-                    branch: employee.branch,
+                    head_quarters: (employee.head_quarters ?? []).join(", "),
                     designation: employee.designation,
                     email: employee.email,
                     employee_id: employee.employee_id,
@@ -314,7 +317,7 @@ export default function EmployeesPage() {
                 value={filters.search}
               />
             </label>
-            <input className={inputClassName()} onChange={(event) => setFilters((value) => ({ ...value, branch: event.target.value }))} placeholder="Branch" value={filters.branch} />
+            <input className={inputClassName()} onChange={(event) => setFilters((value) => ({ ...value, branch: event.target.value }))} placeholder="Head Quarter" value={filters.branch} />
             <input className={inputClassName()} onChange={(event) => setFilters((value) => ({ ...value, designation: event.target.value }))} placeholder="Designation" value={filters.designation} />
             <select
               className={inputClassName()}

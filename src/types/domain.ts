@@ -11,6 +11,7 @@ export interface Employee {
   full_name: string;
   designation: string;
   branch: string | null;
+  head_quarters: string[];
   mobile: string;
   email: string | null;
   auth_email?: string | null;
@@ -38,6 +39,7 @@ export interface EmployeeCreateInput {
   full_name: string;
   designation: string;
   branch?: string | null;
+  head_quarters?: string[];
   mobile: string;
   email?: string | null;
   password: string;
@@ -92,6 +94,7 @@ export interface Doctor {
   specialization?: string;
   city: string;
   mobile: string;
+  head_quarters: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -132,6 +135,7 @@ export interface Dealer {
   state: string;
   address: string;
   gst_number: string;
+  head_quarters: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -188,6 +192,7 @@ export interface TrackingRecord {
   updated_at: string;
   battery_percent: number | null;
   is_working: boolean;
+  total_km_today?: number;
 }
 
 export interface NotificationRecord {

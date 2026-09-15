@@ -11,6 +11,7 @@ interface DealerRow {
   state: string | null;
   address: string | null;
   gst_number: string | null;
+  head_quarters: string[] | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -56,6 +57,7 @@ export async function getDealers(params: PaginatedQuery): Promise<PaginatedRespo
       state: row.state ?? "-",
       address: row.address ?? "-",
       gst_number: row.gst_number ?? "-",
+      head_quarters: row.head_quarters ?? [],
       is_active: row.is_active,
       created_at: row.created_at,
       updated_at: row.updated_at,
@@ -84,6 +86,7 @@ export async function createDealer(payload: Omit<Dealer, "id" | "created_at" | "
     email: payload.email,
     city: payload.city,
     is_active: payload.is_active,
+    head_quarters: payload.head_quarters ?? [],
   }).select().single();
 
   if (error) {

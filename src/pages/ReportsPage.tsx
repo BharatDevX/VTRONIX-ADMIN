@@ -1,92 +1,44 @@
-import { Download, FileText, Printer } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { FileDown, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useReportSummary } from "@/features/reports/hooks";
-import { exportCSV, exportExcel, printReport } from "@/services/export.service";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/services/supabase";
+import { printTableReport } from "@/services/export.service";
+import { getAdminFollowUps } from "@/features/followUps/service";
+import { getActualSales } from "@/features/sales/actualSalesService";
 
-const reportCards = [
-  { key: "attendance", label: "Attendance" },
-  { key: "sales", label: "Order Form" },
-  { key: "doctor", label: "Doctors" },
-  { key: "dealer", label: "Dealers" },
-  { key: "products", label: "Products" },
-  { key: "retailers", label: "Retailers" },
-  { key: "employees", label: "Employees" },
-  { key: "mtp", label: "MTP" },
-] as const;
+type ReportDefinition = { key: string; label: string; table?: string; columns: Array<{key:string;label:string}>; load?: () => Promise<Record<string,unknown>[]> };
 
 export default function ReportsPage() {
-  const summary = useReportSummary();
-
-  return (
-    <div>
-      <PageHeader description="Central export hub for attendance, sales, doctor, dealer, employee, and MTP reports." eyebrow="Exports" title="Reports" />
-      <div className="grid gap-5 p-5 md:grid-cols-2 xl:grid-cols-3">
-        {reportCards.map((report) => {
-          const records = summary.data?.[report.key] ?? 0;
-
-          return (
-            <Card key={report.key}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-slate-950 text-white dark:bg-slate-700">
-                    <FileText className="size-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-slate-950 dark:text-white">{report.label} report</h2>
-                    {summary.isLoading ? <Skeleton className="mt-2 h-4 w-24" /> : <p className="text-sm text-slate-500 dark:text-slate-400">{records} records available</p>}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                <Button
-  onClick={() =>
-    exportCSV(
-      `${report.key}-report.csv`,
-      [
-        {
-          generated_at: new Date().toISOString(),
-          records,
-          report: report.label,
-        },
-      ]
-    )
-  }
-  variant="outline"
->
-  <Download />
-  CSV
-</Button>
-                <Button
-  onClick={() =>
-    exportExcel(
-      `${report.key}-report.xlsx`,
-      [
-        {
-          generated_at: new Date().toISOString(),
-          records,
-          report: report.label,
-        },
-      ]
-    )
-  }
-  variant="outline"
->
-  <Download />
-  Excel
-</Button>
-                <Button onClick={printReport} variant="outline">
-                  <Printer />
-                  PDF
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
+  const [running,setRunning]=useState<string | null>(null); const [error,setError]=useState<string | null>(null);
+  const [counts,setCounts]=useState<Record<string,number>>({});
+  const definitions=useMemo<ReportDefinition[]>(()=>[
+    {key:"attendance",label:"Attendance",table:"attendance",columns:[{key:"employee_id",label:"Employee"},{key:"attendance_date",label:"Date"},{key:"status",label:"Status"},{key:"check_in_time",label:"Check In"},{key:"check_out_time",label:"Check Out"},{key:"working_minutes",label:"Working Minutes"}]},
+    {key:"employees",label:"Employees",table:"employees",columns:[{key:"employee_id",label:"Employee ID"},{key:"full_name",label:"Name"},{key:"designation",label:"Designation"},{key:"head_quarters",label:"Head Quarters"},{key:"mobile",label:"Mobile"},{key:"is_active",label:"Active"}]},
+    {key:"doctor-visits",label:"Doctor Visits",table:"doctor_visits",columns:[{key:"employee_id",label:"Employee"},{key:"doctor_id",label:"Doctor"},{key:"visit_date",label:"Date"},{key:"visit_time",label:"Time"},{key:"location",label:"Location"},{key:"discussion",label:"Discussion"},{key:"outcome",label:"Outcome"}]},
+    {key:"dealer-visits",label:"Dealer Visits",table:"dealer_visits",columns:[{key:"employee_id",label:"Employee"},{key:"dealer_id",label:"Dealer"},{key:"visit_date",label:"Date"},{key:"visit_time",label:"Time"},{key:"location",label:"Location"},{key:"discussion",label:"Discussion"},{key:"outcome",label:"Outcome"}]},
+    {key:"farmer-visits",label:"Farmer Visits",table:"farmer_visits",columns:[{key:"employee_id",label:"Employee"},{key:"farmer_name",label:"Farmer"},{key:"visit_date",label:"Date"},{key:"visit_time",label:"Time"},{key:"location",label:"Location"},{key:"discussion",label:"Discussion"},{key:"outcome",label:"Outcome"}]},
+    {key:"doctor-plans",label:"Doctor Meeting Plans",table:"doctor_meeting_plans",columns:[{key:"employee_id",label:"Employee"},{key:"doctor_id",label:"Doctor"},{key:"planned_date",label:"Date"},{key:"location",label:"Location"},{key:"reply",label:"Reply"}]},
+    {key:"dealer-plans",label:"Dealer Meeting Plans",table:"dealer_meeting_plans",columns:[{key:"employee_id",label:"Employee"},{key:"dealer_id",label:"Dealer"},{key:"planned_date",label:"Date"},{key:"location",label:"Location"},{key:"discussion",label:"Discussion"}]},
+    {key:"farmer-plans",label:"Farmer Meeting Plans",table:"farmer_meeting_plans",columns:[{key:"employee_id",label:"Employee"},{key:"farmer_name",label:"Farmer"},{key:"planned_date",label:"Date"},{key:"location",label:"Location"},{key:"note",label:"Note"}]},
+    {key:"order-form",label:"Order Form / Sales",table:"sales",columns:[{key:"employee_id",label:"Employee"},{key:"sale_date",label:"Date"},{key:"sale_type",label:"Type"},{key:"dealer_id",label:"Dealer"},{key:"doctor_id",label:"Doctor"},{key:"product_id",label:"Product"},{key:"quantity",label:"Qty"},{key:"rate",label:"Rate"},{key:"amount",label:"Amount"}]},
+    {key:"sales-invoice",label:"Sales Invoice",columns:[{key:"sale_date",label:"Date"},{key:"employee_name",label:"Employee"},{key:"dealer_name",label:"Dealer"},{key:"hq",label:"HQ"},{key:"invoice_no",label:"Invoice"},{key:"total_amount",label:"Amount"}],load:async()=>{const rows=await getActualSales();return rows as unknown as Record<string,unknown>[];}},
+    {key:"follow-ups",label:"Follow-Ups",columns:[{key:"employee_name",label:"Employee"},{key:"visit_type",label:"Type"},{key:"party_name",label:"Party"},{key:"follow_up_date",label:"Follow-up"},{key:"original_visit_date",label:"Original Visit"},{key:"completed",label:"Completed"}],load:async()=>{const rows=await getAdminFollowUps();return rows as unknown as Record<string,unknown>[];}},
+    {key:"mtp",label:"MTP",table:"monthly_tour_programmes",columns:[{key:"employee_id",label:"Employee"},{key:"month",label:"Month"},{key:"year",label:"Year"},{key:"status",label:"Status"},{key:"planned_days",label:"Planned Days"},{key:"remarks",label:"Remarks"}]},
+    {key:"hq",label:"HQ Receivables",table:"hq_receivables",columns:[{key:"hq",label:"HQ"},{key:"month",label:"Month"},{key:"year",label:"Year"},{key:"paid_amount",label:"Paid"},{key:"overdue_amount",label:"Overdue"}]},
+    {key:"doctors",label:"Doctor Master",table:"doctors",columns:[{key:"doctor_name",label:"Doctor"},{key:"specialization",label:"Specialization"},{key:"city",label:"City"},{key:"mobile",label:"Mobile"},{key:"head_quarters",label:"Head Quarters"},{key:"is_active",label:"Active"}]},
+    {key:"dealers",label:"Dealer Master",table:"dealers",columns:[{key:"dealer_name",label:"Dealer"},{key:"contact_person",label:"Contact"},{key:"city",label:"City"},{key:"mobile",label:"Mobile"},{key:"gst_number",label:"GST"},{key:"is_active",label:"Active"}]},
+    {key:"retailers",label:"Retailer Master",table:"retailers",columns:[{key:"retailer_name",label:"Retailer"},{key:"city",label:"City"},{key:"mobile",label:"Mobile"},{key:"is_active",label:"Active"}]},
+    {key:"products",label:"Product Master",table:"products",columns:[{key:"product_name",label:"Product"},{key:"category",label:"Category"},{key:"price",label:"Price"},{key:"is_active",label:"Active"}]},
+    {key:"sales-targets",label:"Sales Targets",table:"sales_targets",columns:[{key:"employee_id",label:"Employee"},{key:"month",label:"Month"},{key:"year",label:"Year"},{key:"target_amount",label:"Target"}]},
+    {key:"counter-sales",label:"Counter Sales",columns:[{key:"employee_id",label:"Employee"},{key:"sale_date",label:"Date"},{key:"dealer_id",label:"Dealer"},{key:"product_id",label:"Product"},{key:"quantity",label:"Qty"},{key:"rate",label:"Rate"},{key:"amount",label:"Amount"}],load:async()=>{const {data,error}=await supabase.from("sales").select("*").eq("sale_type","counter");if(error)throw error;return (data??[]) as Record<string,unknown>[];}},
+    {key:"secondary-sales",label:"Secondary Sales",columns:[{key:"employee_id",label:"Employee"},{key:"sale_date",label:"Date"},{key:"dealer_id",label:"Dealer"},{key:"product_id",label:"Product"},{key:"quantity",label:"Qty"},{key:"amount",label:"Amount"}],load:async()=>{const {data,error}=await supabase.from("sales").select("*").neq("sale_type","doctor");if(error)throw error;return (data??[]) as Record<string,unknown>[];}},
+    {key:"doctor-wise-sales",label:"Doctor-wise Sales",columns:[{key:"employee_id",label:"Employee"},{key:"sale_date",label:"Date"},{key:"doctor_id",label:"Doctor"},{key:"dealer_id",label:"Dealer"},{key:"product_id",label:"Product"},{key:"quantity",label:"Qty"},{key:"amount",label:"Amount"}],load:async()=>{const {data,error}=await supabase.from("sales").select("*").eq("sale_type","doctor");if(error)throw error;return (data??[]) as Record<string,unknown>[];}},
+    {key:"live-tracking",label:"Live Tracking",table:"employee_live_locations",columns:[{key:"employee_id",label:"Employee"},{key:"latitude",label:"Latitude"},{key:"longitude",label:"Longitude"},{key:"battery_level",label:"Battery"},{key:"is_working",label:"Working"},{key:"updated_at",label:"Updated"}]},
+    {key:"notifications",label:"Notifications",table:"notifications",columns:[{key:"title",label:"Title"},{key:"body",label:"Message"},{key:"severity",label:"Severity"},{key:"is_read",label:"Read"},{key:"created_at",label:"Created"}]},
+    {key:"order-deliveries",label:"Order Delivery",table:"sales_deliveries",columns:[{key:"sale_id",label:"Order"},{key:"employee_id",label:"Employee"},{key:"delivery_date",label:"Delivery Date"},{key:"expected_delivery_date",label:"Expected"},{key:"delivered_amount",label:"Delivered"},{key:"status",label:"Status"}]},
+  ],[]);
+  const run=async(def:ReportDefinition)=>{setRunning(def.key);setError(null);try{let rows=def.load?await def.load():[];if(def.table){const result=await supabase.from(def.table).select("*");if(result.error)throw result.error;rows=(result.data??[]) as Record<string,unknown>[];}if(def.key==="employees"){rows=rows.map((row)=>({...row,head_quarters:Array.isArray(row.head_quarters)?row.head_quarters.join(", "):row.head_quarters??row.branch??""}));}printTableReport(`${def.label} Report`,"VETRONIX ERP Admin Report",def.columns,rows);setCounts((current)=>({...current,[def.key]:rows.length}));}catch(e){setError(e instanceof Error?e.message:`Unable to generate ${def.label} report.`);}finally{setRunning(null);}};
+  return <div className="space-y-5 p-5 lg:p-6"><PageHeader title="Reports" description="Every major Admin Panel dataset has a structured PDF report with the actual records and columns." />{error?<div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>:null}<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{definitions.map((def)=><Card key={def.key}><CardHeader><CardTitle className="text-base">{def.label}</CardTitle></CardHeader><CardContent className="flex items-center justify-between gap-3"><span className="text-sm text-slate-500">{counts[def.key]===undefined?"Generate a full report":`${counts[def.key]} records`}</span><Button variant="outline" disabled={running!==null} onClick={()=>void run(def)}>{running===def.key?<Loader2 className="size-4 animate-spin"/>:<FileDown className="size-4"/>}PDF</Button></CardContent></Card>)}</div></div>;
 }

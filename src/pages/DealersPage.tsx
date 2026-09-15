@@ -24,6 +24,7 @@ const DealerSchema = z.object({
   mobile: z.string().trim().regex(/^[0-9]{10}$/, "Enter valid mobile number"),
   email: z.string().trim().email("Enter valid email").or(z.literal("")),
   city: z.string().trim().min(2, "City is required"),
+  head_quarters: z.array(z.string().trim().min(1)).default([]),
  
   is_active: z.boolean().default(true),
 });
@@ -42,9 +43,10 @@ function DealerForm({ dealer, onDone, onFeedback }: { dealer?: Dealer; onDone: (
           mobile: dealer.mobile,
           email: dealer.email,
           city: dealer.city,
+          head_quarters: dealer.head_quarters ?? [],
           is_active: dealer.is_active,
         }
-      : { dealer_name: "", mobile: "", email: "", city: "", is_active: true },
+      : { dealer_name: "", mobile: "", email: "", city: "", head_quarters: [], is_active: true },
     resolver: zodResolver(DealerSchema) as any,
   });
 
@@ -84,6 +86,10 @@ function DealerForm({ dealer, onDone, onFeedback }: { dealer?: Dealer; onDone: (
       <Field label="City" error={form.formState.errors.city?.message}>
         <input className={inputClassName()} {...form.register("city")} />
       </Field>
+      <Field label="Head Quarter(s)" error={form.formState.errors.head_quarters?.message as string | undefined}>
+        <input className={inputClassName()} value={(form.watch("head_quarters") ?? []).join(", ")} onChange={(event) => form.setValue("head_quarters", event.target.value.split(",").map((value) => value.trim()).filter(Boolean), { shouldValidate: true })} placeholder="Lucknow, Kanpur, Varanasi" />
+        <p className="mt-1 text-xs text-slate-500">Enter multiple Head Quarters separated by commas.</p>
+      </Field>
       <div className="flex items-center gap-3">
         <input className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600" id="active" type="checkbox" {...form.register("is_active")} />
         <label htmlFor="active" className="text-sm text-slate-600 dark:text-slate-300">
@@ -117,6 +123,7 @@ export default function DealersPage() {
       { accessorKey: "dealer_name", header: "Dealer Name" },
       { accessorKey: "mobile", header: "Mobile" },
       { accessorKey: "city", header: "City" },
+      { accessorKey: "head_quarters", cell: ({ row }: any) => (row.original.head_quarters ?? []).join(", ") || "—", header: "Head Quarter(s)" },
       { accessorKey: "is_active", cell: ({ row }: any) => <StatusBadge value={row.original.is_active} />, header: "Status" },
       { accessorKey: "created_at", cell: ({ row }: any) => formatDate(row.original.created_at), header: "Created" },
       {
@@ -177,6 +184,7 @@ export default function DealersPage() {
                     email: dealer.email,
                    
                     mobile: dealer.mobile,
+                    head_quarters: (dealer.head_quarters ?? []).join(", "),
                     
                     status: dealer.is_active ? "Active" : "Inactive",
                   })),

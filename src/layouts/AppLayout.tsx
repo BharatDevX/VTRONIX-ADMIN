@@ -12,7 +12,6 @@ import {
   Package,
   Search,
   Settings,
-  ShoppingBag,
   ShoppingCart,
   Target,
   WalletCards,
@@ -21,6 +20,8 @@ import {
   Store,
   Syringe,
   Users,
+  UserRound,
+  FileText,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -29,30 +30,33 @@ import { useAuth } from "@/app/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", to: "/" },
-  { icon: Users, label: "Employees", to: "/employees" },
-  { icon: ClipboardList, label: "Attendance", to: "/attendance" },
-  { icon: Syringe, label: "Doctor Visits", to: "/doctor-visits" },
-  { icon: Stethoscope, label: "Doctor Master", to: "/doctor" },
-  { icon: Store, label: "Dealer Visits", to: "/dealer" },
-  { icon: BookUser, label: "Dealer Master", to: "/dealers" },
-  { icon: ShoppingBag, label: "Retailers", to: "/retailers" },
-  { icon: Package, label: "Products", to: "/products" },
-  { icon: ShoppingCart, label: "Order Form", to: "/sales" },
-  { icon: Target, label: "Monthly Sales Targets", to: "/sales-targets" },
-  { icon: WalletCards, label: "HQ Receivables", to: "/hq-receivables" },
-  { icon: CalendarClock, label: "Follow-Ups", to: "/follow-ups" },
-  { icon: CalendarDays, label: "Monthly Tour Programme", to: "/mtp" },
-  { icon: Map, label: "Live Tracking", to: "/tracking" },
-  { icon: BarChart3, label: "Reports", to: "/reports" },
-  { icon: Bell, label: "Notifications", to: "/notifications" },
-  { icon: Settings, label: "Settings", to: "/settings" },
+const navGroups = [
+  { label: "", items: [{ icon: LayoutDashboard, label: "Dashboard", to: "/" }] },
+  { label: "Attendance", items: [{ icon: ClipboardList, label: "Attendance", to: "/attendance" }] },
+  { label: "Employees", items: [{ icon: Users, label: "Employees", to: "/employees" }, { icon: UserRound, label: "Employee Profile", to: "/employee-profile" }] },
+  { label: "Masters", items: [
+    { icon: Stethoscope, label: "Doctor Master", to: "/doctor" }, { icon: BookUser, label: "Dealer Master", to: "/dealers" },
+    { icon: Users, label: "Retailers", to: "/retailers" }, { icon: Package, label: "Products", to: "/products" },
+  ] },
+  { label: "Visits", items: [
+    { icon: Syringe, label: "Doctor Visits", to: "/doctor-visits" }, { icon: Store, label: "Dealer Visits", to: "/dealer-visits" }, { icon: Users, label: "Farmer Visits", to: "/farmer-visits" },
+  ] },
+  { label: "Meeting Plans", items: [
+    { icon: CalendarDays, label: "Doctor Meeting Plan", to: "/doctor-meeting-plan" }, { icon: CalendarDays, label: "Dealer Meeting Plan", to: "/dealer-meeting-plan" }, { icon: CalendarDays, label: "Farmer Meeting Plan", to: "/farmer-meeting-plan" },
+  ] },
+  { label: "Operations", items: [
+    { icon: ShoppingCart, label: "Order Form", to: "/order-form" }, { icon: FileText, label: "Sales Invoice", to: "/sales-invoice" }, { icon: Target, label: "Monthly Sales Targets", to: "/sales-targets" }, { icon: WalletCards, label: "HQ Receivables", to: "/hq-receivables" }, { icon: CalendarClock, label: "Follow-Ups", to: "/employee-follow-ups" }, { icon: CalendarDays, label: "Monthly Tour Programme", to: "/mtp" }, { icon: Map, label: "Live Tracking", to: "/tracking" },
+  ] },
+  { label: "Reports", items: [{ icon: BarChart3, label: "Reports", to: "/reports" }] },
+  { label: "System", items: [{ icon: Bell, label: "Notifications", to: "/notifications" }, { icon: Settings, label: "Settings", to: "/settings" }] },
 ];
 
 function titleFromPath(pathname: string) {
-  const item = navItems.find((navItem) => navItem.to === pathname);
-  return item?.label ?? "Dashboard";
+  for (const group of navGroups) {
+    const item = group.items.find((navItem) => navItem.to === pathname);
+    if (item) return item.label;
+  }
+  return "Dashboard";
 }
 
 import { ThemeToggleButton } from "@/components/ui/theme-toggle";
@@ -95,7 +99,10 @@ export default function AppLayout() {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {navItems.map((item) => (
+          {navGroups.map((group) => (
+            <div key={group.label || "dashboard"} className="mb-4">
+              {!collapsed && group.label ? <p className="px-3 pb-2 pt-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">{group.label}</p> : null}
+              {group.items.map((item) => (
             <NavLink
               className={({ isActive }) =>
                 cn(
@@ -112,6 +119,8 @@ export default function AppLayout() {
               <item.icon className="size-4 shrink-0" />
               {!collapsed ? <span className="truncate">{item.label}</span> : null}
             </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
 

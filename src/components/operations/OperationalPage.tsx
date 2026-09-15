@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Download, Search } from "lucide-react";
+import { Download, FileDown, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { DataTable } from "@/components/ui/table";
 import { inputClassName } from "@/lib/form-style";
-import { exportCSV } from "@/services/export.service";
+import { exportCSV, printTableReport } from "@/services/export.service";
 import type { PaginatedQuery } from "@/types/domain";
 
 type ExportRow = Record<string, unknown>;
@@ -47,18 +47,23 @@ export function OperationalPage<T>({
     <div>
       <PageHeader
         actions={
-          <Button
-  onClick={() =>
-    exportCSV(
-      exportFilename,
-      rowsForExport(data)
-    )
-  }
-  variant="outline"
->
-  <Download />
-  Export CSV
-</Button>
+          <div className="flex gap-2">
+            <Button onClick={() => exportCSV(exportFilename, rowsForExport(data))} variant="outline">
+              <Download />
+              Export CSV
+            </Button>
+            <Button
+              onClick={() => {
+                const rows = rowsForExport(data);
+                const keys = Object.keys(rows[0] ?? {});
+                printTableReport(title, "Vetronix ERP report", keys.map((key) => ({ key, label: key.replace(/_/g, " ").replace(/\b\w/g, (character) => character.toUpperCase()) })), rows);
+              }}
+              variant="outline"
+            >
+              <FileDown />
+              PDF
+            </Button>
+          </div>
         }
         description={description}
         eyebrow="Operations"

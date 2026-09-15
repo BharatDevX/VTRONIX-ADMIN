@@ -23,6 +23,7 @@ const DoctorSchema = z.object({
   specialization: z.string().trim(),
   city: z.string().trim().min(2, "City is required"),
   mobile: z.string().trim().regex(/^[0-9]{10}$/, "Enter valid mobile number"),
+  head_quarters: z.array(z.string().trim().min(1)).default([]),
   is_active: z.boolean().default(true),
 });
 
@@ -40,9 +41,10 @@ function DoctorForm({ doctor, onDone, onFeedback }: { doctor?: Doctor; onDone: (
           specialization: doctor.specialization,
           city: doctor.city,
           mobile: doctor.mobile,
+          head_quarters: doctor.head_quarters ?? [],
           is_active: doctor.is_active,
         }
-      : { doctor_name: "", specialization: "", city: "", mobile: "", is_active: true },
+      : { doctor_name: "", specialization: "", city: "", mobile: "", head_quarters: [], is_active: true },
     resolver: zodResolver(DoctorSchema) as any,
   });
 
@@ -74,6 +76,10 @@ function DoctorForm({ doctor, onDone, onFeedback }: { doctor?: Doctor; onDone: (
       </Field>
       <Field label="Mobile" error={form.formState.errors.mobile?.message}>
         <input className={inputClassName()} {...form.register("mobile")} />
+      </Field>
+      <Field label="Head Quarter(s)">
+        <input className={inputClassName()} value={(form.watch("head_quarters") ?? []).join(", ")} onChange={(event) => form.setValue("head_quarters", event.target.value.split(",").map((value) => value.trim()).filter(Boolean), { shouldValidate: true })} placeholder="Jaipur, Kota, Ajmer" />
+        <p className="mt-1 text-xs text-slate-500">Enter multiple Head Quarters separated by commas.</p>
       </Field>
       <div className="flex items-center gap-3">
         <input className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600" id="active" type="checkbox" {...form.register("is_active")} />
@@ -108,6 +114,7 @@ export default function DoctorPage() {
       { accessorKey: "doctor_name", header: "Name" },
       { accessorKey: "specialization", header: "Specialization" },
       { accessorKey: "city", header: "City" },
+      { accessorKey: "head_quarters", cell: ({ row }: any) => (row.original.head_quarters ?? []).join(", ") || "—", header: "Head Quarter(s)" },
       { accessorKey: "mobile", header: "Mobile" },
       { accessorKey: "is_active", cell: ({ row }: any) => <StatusBadge value={row.original.is_active} />, header: "Status" },
       { accessorKey: "created_at", cell: ({ row }: any) => formatDate(row.original.created_at), header: "Created" },
@@ -166,6 +173,7 @@ export default function DoctorPage() {
                     doctor_name: doctor.doctor_name,
                     mobile: doctor.mobile,
                     specialization: doctor.specialization,
+                    head_quarters: (doctor.head_quarters ?? []).join(", "),
                     status: doctor.is_active ? "Active" : "Inactive",
                   })),
                 )
