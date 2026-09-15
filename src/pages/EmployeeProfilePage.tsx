@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmployeePicker } from "@/components/employee/EmployeePicker";
+import { sendEmployeeMessage, type EmployeeMessageType } from "../Features/employeeMessages/service";
 import { getAllEmployees, getEmployeeAttendance, getEmployeeDoctorVisits, getEmployeeDealerVisits, getEmployeeFarmerVisits, getEmployeeFollowUps, getEmployeeOrderForms, getEmployeeSalesSummary } from "@/features/adminEmployee/services/adminEmployee.service";
 import { printTableReport } from "@/services/export.service";
 import type { Employee } from "@/types/domain";
@@ -16,6 +17,10 @@ export default function EmployeeProfilePage() {
   const [summary, setSummary] = useState<any>(null);
   const [counts, setCounts] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<EmployeeMessageType>("info");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageFeedback, setMessageFeedback] = useState<string | null>(null);
   useEffect(() => { void getAllEmployees().then(setEmployees).finally(() => setLoading(false)); }, []);
   const load = async (employee: Employee) => {
     setSelected(employee); setLoading(true);
@@ -36,6 +41,73 @@ export default function EmployeeProfilePage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">{[
         ["Today's Sales",money(summary.todaySales)], ["Monthly Sales",money(summary.monthlySales)], ["Counter Sale",money(summary.counterSales)], ["Secondary Sale",money(summary.secondarySales)], ["Doctor-wise Sale",money(summary.doctorWiseSales)], ["Sales Invoice",money(summary.invoiceSales)],
       ].map(([label,value])=><Card key={label}><CardContent className="pt-5"><p className="text-xs text-slate-500">{label}</p><p className="mt-1 text-xl font-bold">{value}</p></CardContent></Card>)}</div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Message Employee</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Message Type</label>
+              <select
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900"
+                value={messageType}
+                onChange={(event) => setMessageType(event.target.value as EmployeeMessageType)}
+                disabled={sendingMessage}
+              >
+                <option value="info">Information</option>
+                <option value="warning">Warning</option>
+                <option value="alert">Alert</option>
+                <option value="order">Order</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Message for {selected.full_name}</label>
+              <textarea
+                className="min-h-28 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                value={message}
+                onChange={(event) => {
+                  setMessage(event.target.value);
+                  setMessageFeedback(null);
+                }}
+                placeholder="Write the warning, information, alert, or order exactly as you want the employee to receive it..."
+                rows={4}
+                disabled={sendingMessage}
+                maxLength={2000}
+              />
+              <p className="mt-1 text-xs text-slate-500">{message.length}/2000</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              disabled={sendingMessage || !message.trim()}
+              onClick={async () => {
+                if (!selected || !message.trim()) return;
+                try {
+                  setSendingMessage(true);
+                  setMessageFeedback(null);
+                  await sendEmployeeMessage({
+                    employeeId: selected.id,
+                    message,
+                    type: messageType,
+                  });
+                  setMessage("");
+                  setMessageFeedback("Message sent successfully. The employee will receive it in realtime.");
+                } catch (error) {
+                  setMessageFeedback(error instanceof Error ? error.message : "Unable to send message.");
+                } finally {
+                  setSendingMessage(false);
+                }
+              }}
+            >
+              {sendingMessage ? "Sending..." : "Send Message"}
+            </Button>
+            {messageFeedback ? (
+              <span className="text-sm text-slate-600 dark:text-slate-300">{messageFeedback}</span>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
       <Card><CardHeader><CardTitle>Activity Overview</CardTitle></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">{Object.entries(counts ?? {}).map(([key,value])=><div key={key} className="rounded-xl bg-slate-50 p-4 dark:bg-slate-900"><p className="text-xs uppercase text-slate-500">{key}</p><p className="mt-1 text-2xl font-bold">{String(value)}</p></div>)}</CardContent></Card>
     </>}
   </div>;
