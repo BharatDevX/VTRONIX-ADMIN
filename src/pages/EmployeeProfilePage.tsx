@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmployeePicker } from "@/components/employee/EmployeePicker";
-import { sendEmployeeMessage, type EmployeeMessageType } from "../Features/employeeMessages/service";
+import { sendEmployeeMessage, type EmployeeMessageType } from "../features/employeeMessages/service";
 import { getAllEmployees, getEmployeeAttendance, getEmployeeDoctorVisits, getEmployeeDealerVisits, getEmployeeFarmerVisits, getEmployeeFollowUps, getEmployeeOrderForms, getEmployeeSalesSummary } from "@/features/adminEmployee/services/adminEmployee.service";
 import { printTableReport } from "@/services/export.service";
 import type { Employee } from "@/types/domain";
