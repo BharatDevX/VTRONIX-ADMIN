@@ -33,22 +33,47 @@ import { cn } from "@/lib/utils";
 const navGroups = [
   { label: "", items: [{ icon: LayoutDashboard, label: "Dashboard", to: "/" }] },
   { label: "Attendance", items: [{ icon: ClipboardList, label: "Attendance", to: "/attendance" }] },
-  { label: "Employees", items: [{ icon: Users, label: "Employees", to: "/employees" }, { icon: UserRound, label: "Employee Profile", to: "/employee-profile" }] },
-  { label: "Masters", items: [
-    { icon: Stethoscope, label: "Doctor Master", to: "/doctor" }, { icon: BookUser, label: "Dealer Master", to: "/dealers" },
-    { icon: Users, label: "Retailers", to: "/retailers" }, { icon: Package, label: "Products", to: "/products" },
+  { label: "Employees", items: [
+    { icon: Users, label: "Employees", to: "/employees" },
+    { icon: UserRound, label: "Employee Profile", to: "/employee-profile" },
   ] },
-  { label: "Visits", items: [
-    { icon: Syringe, label: "Doctor Visits", to: "/doctor-visits" }, { icon: Store, label: "Dealer Visits", to: "/dealer-visits" }, { icon: Users, label: "Farmer Visits", to: "/farmer-visits" },
+  { label: "Masters", items: [
+    { icon: Stethoscope, label: "Doctor Master", to: "/doctor" },
+    { icon: BookUser, label: "Dealer Master", to: "/dealers" },
+    { icon: Users, label: "Retailers", to: "/retailers" },
+    { icon: Package, label: "Products", to: "/products" },
+  ] },
+  { label: "Daily Progress", items: [
+    { icon: Syringe, label: "Doctor Visits", to: "/doctor-visits" },
+    { icon: Store, label: "Dealer Visits", to: "/dealer-visits" },
+    { icon: Users, label: "Farmer Visits", to: "/farmer-visits" },
   ] },
   { label: "Meeting Plans", items: [
-    { icon: CalendarDays, label: "Doctor Meeting Plan", to: "/doctor-meeting-plan" }, { icon: CalendarDays, label: "Dealer Meeting Plan", to: "/dealer-meeting-plan" }, { icon: CalendarDays, label: "Farmer Meeting Plan", to: "/farmer-meeting-plan" },
+    { icon: CalendarDays, label: "Doctor Meeting Plan", to: "/doctor-meeting-plan" },
+    { icon: CalendarDays, label: "Dealer Meeting Plan", to: "/dealer-meeting-plan" },
+    { icon: CalendarDays, label: "Farmer Meeting Plan", to: "/farmer-meeting-plan" },
+    { icon: CalendarDays, label: "Monthly Tour Programme", to: "/mtp" },
+  ] },
+  { label: "Sales", items: [
+    { icon: ShoppingCart, label: "Order Form", to: "/order-form" },
+    { icon: FileText, label: "Sales Invoice", to: "/sales-invoice" },
+    { icon: Target, label: "Monthly Sales Targets", to: "/sales-targets" },
+    { icon: WalletCards, label: "Counter Sale", to: "/counter-sales" },
+    { icon: WalletCards, label: "Secondary Sale", to: "/secondary-sales" },
+    { icon: WalletCards, label: "Doctor Wise Sale", to: "/doctor-wise-sales" },
+  ] },
+  { label: "Finance", items: [
+    { icon: WalletCards, label: "HQ Receivables", to: "/hq-receivables" },
   ] },
   { label: "Operations", items: [
-    { icon: ShoppingCart, label: "Order Form", to: "/order-form" }, { icon: FileText, label: "Sales Invoice", to: "/sales-invoice" }, { icon: Target, label: "Monthly Sales Targets", to: "/sales-targets" }, { icon: WalletCards, label: "HQ Receivables", to: "/hq-receivables" }, { icon: CalendarClock, label: "Follow-Ups", to: "/employee-follow-ups" }, { icon: CalendarDays, label: "Monthly Tour Programme", to: "/mtp" }, { icon: Map, label: "Live Tracking", to: "/tracking" },
+    { icon: CalendarClock, label: "Follow-Ups", to: "/employee-follow-ups" },
+    { icon: Map, label: "Live Tracking", to: "/tracking" },
   ] },
-  { label: "Reports", items: [{ icon: BarChart3, label: "Reports", to: "/reports" }] },
-  { label: "System", items: [{ icon: Bell, label: "Notifications", to: "/notifications" }, { icon: Settings, label: "Settings", to: "/settings" }] },
+  { label: "System", items: [
+    { icon: BarChart3, label: "Reports", to: "/reports" },
+    { icon: Bell, label: "Notifications", to: "/notifications" },
+    { icon: Settings, label: "Settings", to: "/settings" },
+  ] },
 ];
 
 function titleFromPath(pathname: string) {
