@@ -49,12 +49,15 @@ export async function getAdminFollowUps() {
     const completion=all
       .filter(v=>v.id!==r.id&&v.employee_id===r.employee_id&&v.type===type&&v.partyId===partyId&&v.visit_date>=r.next_followup_date&&v.visit_date>=r.visit_date)
       .sort((a,b)=>a.visit_date.localeCompare(b.visit_date))[0]??null;
+    const today=new Date().toISOString().slice(0,10);
+    const overduePending=!completion && today>r.next_followup_date;
     const emp=employees.get(r.employee_id);
     return {
       id:r.id,employee_id:r.employee_id,employee_name:emp?.full_name??"Unknown Employee",
       visit_type:type,party_name:partyName,follow_up_date:r.next_followup_date??"",
       original_visit_date:r.visit_date??"",completed:Boolean(completion),
-      completed_visit_date:completion?.visit_date??null,delay_days:completion?delayDays(r.next_followup_date,completion.visit_date):0,
+      completed_visit_date:completion?.visit_date??null,
+      delay_days:completion?delayDays(r.next_followup_date,completion.visit_date):overduePending?delayDays(r.next_followup_date,today):0,
       location:r.location??"",discussion:r.discussion??"",outcome:r.outcome??"",
     } satisfies AdminFollowUpRecord;
   };

@@ -2,6 +2,7 @@ import { ArrowLeft, Bell, MessageSquareText, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/services/supabase";
 import { PageHeader } from "@/components/ui/page-header";
 import { getAllEmployees } from "@/features/adminEmployee/services/adminEmployee.service";
 import {
@@ -65,6 +66,22 @@ export default function NotificationsPage() {
       setLoadingMessages(false);
     }
   };
+
+  useEffect(() => {
+    if (!selected) return;
+    const channel = supabase
+      .channel(`admin-message-status-${selected.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "employee_admin_messages", filter: `employee_id=eq.${selected.id}` },
+        (payload) => {
+          const updated = payload.new as EmployeeAdminMessageRecord;
+          setMessages((current) => current.map((item) => item.id === updated.id ? { ...item, ...updated } : item));
+        },
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [selected]);
 
   const sortedEmployees = useMemo(
     () => [...employees].sort((a, b) => a.full_name.localeCompare(b.full_name)),
@@ -180,14 +197,17 @@ export default function NotificationsPage() {
                               <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${typeClasses(item.message_type)}`}>
                                 {typeLabel(item.message_type)}
                               </span>
+                              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${item.status === "done" ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-amber-50 text-amber-700 ring-amber-200"}`}>
+                                {item.status === "done" ? "Done" : "Pending"}
+                              </span>
                             </div>
                             <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600 dark:text-slate-300">
                               {item.message}
                             </p>
                           </div>
-                          <div className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400">
-                            <Bell className="size-3.5" />
-                            {formatDateTime(item.created_at)}
+                          <div className="flex shrink-0 flex-col items-end gap-1 text-xs text-slate-400">
+                            <div className="flex items-center gap-1.5"><Bell className="size-3.5" />{formatDateTime(item.created_at)}</div>
+                            {item.done_at ? <span className="text-emerald-600">Done {formatDateTime(item.done_at)}</span> : null}
                           </div>
                         </div>
                       </div>

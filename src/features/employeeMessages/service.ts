@@ -45,6 +45,7 @@ export async function sendEmployeeMessage(params: {
       message,
       message_type: params.type,
       title: titles[params.type],
+      status: "pending",
     })
     .select()
     .single();
@@ -65,12 +66,14 @@ export interface EmployeeAdminMessageRecord {
   message: string;
   message_type: EmployeeMessageType;
   created_at: string;
+  status: "pending" | "done";
+  done_at: string | null;
 }
 
 export async function getEmployeeAdminMessages(employeeId: string): Promise<EmployeeAdminMessageRecord[]> {
   const { data, error } = await supabase
     .from("employee_admin_messages")
-    .select("id, employee_id, sender_admin_id, title, message, message_type, created_at")
+    .select("id, employee_id, sender_admin_id, title, message, message_type, created_at, status, done_at")
     .eq("employee_id", employeeId)
     .order("created_at", { ascending: false });
 
