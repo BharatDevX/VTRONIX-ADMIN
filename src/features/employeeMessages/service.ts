@@ -55,3 +55,25 @@ export async function sendEmployeeMessage(params: {
 
   return data;
 }
+
+
+export interface EmployeeAdminMessageRecord {
+  id: string;
+  employee_id: string;
+  sender_admin_id: string | null;
+  title: string;
+  message: string;
+  message_type: EmployeeMessageType;
+  created_at: string;
+}
+
+export async function getEmployeeAdminMessages(employeeId: string): Promise<EmployeeAdminMessageRecord[]> {
+  const { data, error } = await supabase
+    .from("employee_admin_messages")
+    .select("id, employee_id, sender_admin_id, title, message, message_type, created_at")
+    .eq("employee_id", employeeId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as EmployeeAdminMessageRecord[];
+}
