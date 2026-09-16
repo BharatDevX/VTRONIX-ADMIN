@@ -6,7 +6,7 @@ import { queryKeys } from "@/lib/queryKeys";
 export function useLiveLocations() {
   const queryClient = useQueryClient();
   useEffect(() => subscribeToTracking(() => { void queryClient.invalidateQueries({ queryKey: [queryKeys.tracking] }); }), [queryClient]);
-  return useQuery({ queryFn: getLiveLocations, queryKey: [queryKeys.tracking, "live"], refetchInterval: 15000, staleTime: 5000 });
+  return useQuery({ queryFn: getLiveLocations, queryKey: [queryKeys.tracking, "live"], refetchInterval: 10000, staleTime: 3000 });
 }
 
 export function useEmployeeJourney(employeeId: string) {
@@ -15,7 +15,7 @@ export function useEmployeeJourney(employeeId: string) {
     if (!employeeId) return;
     return subscribeToTracking(() => { void queryClient.invalidateQueries({ queryKey: [queryKeys.tracking, "journey", employeeId] }); });
   }, [employeeId, queryClient]);
-  return useQuery({ queryKey: [queryKeys.tracking, "journey", employeeId], queryFn: () => getEmployeeJourney(employeeId), enabled: Boolean(employeeId), refetchInterval: 15000, staleTime: 5000 });
+  return useQuery({ queryKey: [queryKeys.tracking, "journey", employeeId], queryFn: () => getEmployeeJourney(employeeId), enabled: Boolean(employeeId), refetchInterval: 10000, staleTime: 3000 });
 }
 
 
@@ -32,7 +32,7 @@ export function useEmployeeTrackingSummary(employeeId: string) {
     queryKey: [queryKeys.tracking, "summary", employeeId],
     queryFn: () => getEmployeeTrackingSummary(employeeId),
     enabled: Boolean(employeeId),
-    refetchInterval: 15000,
+    refetchInterval: 10000,
     staleTime: 5000,
   });
 }
