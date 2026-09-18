@@ -38,6 +38,19 @@ export interface TrackingSummary {
   vehicleType: string | null;
 }
 
+export interface TrackingPdfData {
+  employeeName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  startLocation: string;
+  middleLocations: string[];
+  endLocation: string;
+  totalKm: number;
+  totalMonthlyKm: number;
+  vehicleType: string;
+}
+
 function localDateString(date = new Date()) {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
@@ -292,6 +305,91 @@ export async function getLiveTrackingReportRows(date = new Date()) {
     ...row,
     vehicle_type: vehicleMap.get(row.employee_id) ?? "—",
   }));
+}
+
+export async function getEmployeeTrackingPdfData(
+  employeeId: string,
+  date = new Date(),
+): Promise<TrackingPdfData> {
+  const workDate = localDateString(date);
+  const [employeesResult, sessionsResult, journey, summary] = await Promise.all([
+    supabase.from("employees").select("id, full_name").eq("id", employeeId).maybeSingle(),
+    supabase
+      .from("work_sessions")
+      .select("start_time, end_time, start_latitude, start_longitude, end_latitude, end_longitude, total_km, status")
+      .eq("employee_id", employeeId)
+      .eq("work_date", workDate)
+      .order("start_time", { ascending: false }),
+    getEmployeeJourney(employeeId, date),
+    getEmployeeTrackingSummary(employeeId, date),
+  ]);
+
+  if (employeesResult.error) throw employeesResult.error;
+  if (sessionsResult.error) throw sessionsResult.error;
+
+  const session = (sessionsResult.data ?? [])[0] as {
+    start_time: string | null;
+    end_time: string | null;
+    start_latitude: number | null;
+    start_longitude: number | null;
+    end_latitude: number | null;
+    end_longitude: number | null;
+    total_km: number | null;
+    status: string | null;
+  } | undefined;
+
+  const points = [...journey].sort(
+    (left, right) => new Date(left.recorded_at).getTime() - new Date(right.recorded_at).getTime(),
+  );
+
+  const locationText = (point: JourneyPoint | undefined) =>
+    point?.address || (point ? `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}` : "—");
+
+  const startPoint = points[0];
+  const endPoint = points[points.length - 1];
+  const middleLocations = points.length > 2
+    ? points.slice(1, -1).map(locationText)
+    : [];
+
+  const formatCoordinate = (latitude: number | null, longitude: number | null) =>
+    latitude != null && longitude != null
+      ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+      : "—";
+
+  const startLocation = startPoint
+    ? locationText(startPoint)
+    : formatCoordinate(session?.start_latitude ?? null, session?.start_longitude ?? null);
+  const endLocation = endPoint
+    ? locationText(endPoint)
+    : formatCoordinate(session?.end_latitude ?? null, session?.end_longitude ?? null);
+
+  const sessionTotalKm = Number(session?.total_km ?? 0);
+  const totalKm = summary.todayKm > 0 ? summary.todayKm : sessionTotalKm;
+
+  return {
+    employeeName: String(employeesResult.data?.full_name ?? "Unknown employee"),
+    date: workDate,
+    startTime: session?.start_time ? formatDateTimeForPdf(session.start_time) : "—",
+    endTime: session?.end_time ? formatDateTimeForPdf(session.end_time) : "—",
+    startLocation,
+    middleLocations,
+    endLocation,
+    totalKm: Number(totalKm.toFixed(2)),
+    totalMonthlyKm: Number(summary.monthKm.toFixed(2)),
+    vehicleType: summary.vehicleType ?? "—",
+  };
+}
+
+function formatDateTimeForPdf(timestamp: string) {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return timestamp;
+  return date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function subscribeToTracking(onChange: () => void) {

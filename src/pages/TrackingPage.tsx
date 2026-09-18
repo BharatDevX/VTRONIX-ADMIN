@@ -8,6 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmployeePicker } from "@/components/employee/EmployeePicker";
 import { getAllEmployees } from "@/features/adminEmployee/services/adminEmployee.service";
 import { useEmployeeJourney, useEmployeeTrackingSummary, useLiveLocations } from "@/features/tracking/hooks";
+import { getEmployeeTrackingPdfData } from "@/features/tracking/service";
+import { renderEmployeeTrackingPdf } from "@/services/export.service";
+import { Button } from "@/components/ui/button";
+import { FileDown, Loader2 } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import type { Employee } from "@/types/domain";
 
@@ -33,6 +37,8 @@ export default function TrackingPage() {
   const locations = useLiveLocations();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeId, setEmployeeId] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     void getAllEmployees().then(setEmployees);
@@ -61,13 +67,46 @@ export default function TrackingPage() {
   const center = mapPoints[mapPoints.length - 1] ?? [20.5937, 78.9629] as [number, number];
   const totalKm = summary.data?.todayKm ?? journey.data?.[journey.data.length - 1]?.cumulative_km ?? 0;
 
+  const generateTrackingPdf = async () => {
+    if (!employeeId) return;
+
+    const popup = window.open("", "_blank", "width=1000,height=800");
+    if (!popup) {
+      setPdfError("Please allow pop-ups in your browser to generate the PDF.");
+      return;
+    }
+
+    setPdfLoading(true);
+    setPdfError(null);
+    popup.document.write("<p style=\"font-family:Arial;padding:24px\">Preparing live tracking PDF...</p>");
+
+    try {
+      const data = await getEmployeeTrackingPdfData(employeeId);
+      renderEmployeeTrackingPdf(popup, data);
+    } catch (error) {
+      popup.close();
+      setPdfError(error instanceof Error ? error.message : "Unable to generate live tracking PDF.");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-5 p-5 lg:p-6">
       <PageHeader
         eyebrow="Field visibility"
         title="Live Employee Tracking"
         description="Live GPS position updates continuously during an active work session. Journey checkpoints are recorded approximately every 5 km and the final location is captured when End Work is completed."
+        actions={employeeId ? (
+          <Button variant="outline" disabled={pdfLoading} onClick={() => void generateTrackingPdf()}>
+            {pdfLoading ? <Loader2 className="size-4 animate-spin" /> : <FileDown className="size-4" />}
+            {pdfLoading ? "Preparing..." : "Generate PDF"}
+          </Button>
+        ) : undefined}
       />
+      {pdfError ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{pdfError}</div>
+      ) : null}
 
       <EmployeePicker
         employees={employees}
