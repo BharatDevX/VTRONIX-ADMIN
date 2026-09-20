@@ -58,6 +58,29 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
         },
     resolver: zodResolver(employee ? employeeEditSchema : employeeSchema) as any,
   });
+
+  // Keep the field as plain text while typing. Splitting on every
+  // keystroke prevents normal spaces and commas from being entered.
+  const [headQuarterText, setHeadQuarterText] = useState(() =>
+    (employee?.head_quarters ?? (employee?.branch ? [employee.branch] : [])).join(", "),
+  );
+
+  useEffect(() => {
+    setHeadQuarterText(
+      (employee?.head_quarters ?? (employee?.branch ? [employee.branch] : [])).join(", "),
+    );
+  }, [employee?.id]);
+
+  function parseHeadQuarters(value: string): string[] {
+    return Array.from(
+      new Set(
+        value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      ),
+    );
+  }
   const createErrors = form.formState.errors as Partial<Record<keyof EmployeeFormData, { message?: string }>>;
   const isSubmitting = form.formState.isSubmitting || createMutation.isPending || updateMutation.isPending;
 
@@ -66,11 +89,29 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
       className="grid gap-4"
       onSubmit={form.handleSubmit(async (values) => {
         try {
+          const normalizedHeadQuarters = parseHeadQuarters(headQuarterText);
+
+          // Keep react-hook-form in sync with the actual text field before saving.
+          form.setValue("head_quarters", normalizedHeadQuarters, {
+            shouldValidate: true,
+            shouldDirty: true,
+          });
+
+          const payload = {
+            ...values,
+            head_quarters: normalizedHeadQuarters,
+          };
+
           if (employee) {
-            await updateMutation.mutateAsync({ id: employee.id, payload: values as unknown as EmployeeEditFormData });
+            await updateMutation.mutateAsync({
+              id: employee.id,
+              payload: payload as unknown as EmployeeEditFormData,
+            });
             onFeedback({ message: "Employee updated successfully.", type: "success" });
           } else {
-            await createMutation.mutateAsync(values as unknown as EmployeeFormData);
+            await createMutation.mutateAsync(
+              payload as unknown as EmployeeFormData,
+            );
             onFeedback({ message: "Employee created successfully. They can sign in immediately with their employee ID and password.", type: "success" });
           }
           onDone();
@@ -95,8 +136,22 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
           <input className={inputClassName()} {...form.register("designation")} />
         </Field>
         <Field label="Head Quarter(s)" error={form.formState.errors.head_quarters?.message as string | undefined}>
-          <input className={inputClassName()} value={(form.watch("head_quarters") ?? []).join(", ")} onChange={(event) => form.setValue("head_quarters", event.target.value.split(",").map((value) => value.trim()).filter(Boolean), { shouldValidate: true })} placeholder="Jaipur, Kota, Ajmer" />
-          <p className="mt-1 text-xs text-slate-500">Enter multiple Head Quarters separated by commas.</p>
+          <input
+            className={inputClassName()}
+            value={headQuarterText}
+            onChange={(event) => setHeadQuarterText(event.target.value)}
+            onBlur={() => {
+              const normalizedHeadQuarters = parseHeadQuarters(headQuarterText);
+              form.setValue("head_quarters", normalizedHeadQuarters, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            }}
+            placeholder="Jaipur, Kota, Ajmer"
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            Enter multiple Head Quarters separated by commas. Spaces inside a Head Quarter are allowed.
+          </p>
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
