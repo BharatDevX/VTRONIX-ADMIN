@@ -111,18 +111,148 @@ export async function getEmployeeSalesSummary(employeeId: string) {
   };
 }
 
-export async function getEmployeeOrderForms(employeeId: string) {
-  const { data, error } = await supabase.from("sales").select("*").eq("employee_id", employeeId).order("sale_date", { ascending: false }).order("created_at", { ascending: false });
+export type EmployeeOrderFormRow = {
+  id: string;
+  order_number: string;
+  sale_date: string;
+  sale_type: "dealer" | "retailer" | "farmer" | string;
+  hq: string;
+  customer_name: string;
+  product_name: string;
+  pack_size: string;
+  box_count: number;
+  quantity: number;
+  rate: number;
+  amount: number;
+};
+
+export type EmployeeOrderFormDetails = {
+  order_number: string;
+  sale_date: string;
+  sale_type: "dealer" | "retailer" | "farmer" | string;
+  hq: string;
+  employee_name: string;
+  customer_name: string;
+  lines: Array<{
+    product_name: string;
+    pack_size: string;
+    box_count: number;
+    quantity: number;
+    rate: number;
+    amount: number;
+  }>;
+  total_amount: number;
+};
+
+function resolveOrderCustomer(row: any, dealers: Map<string, string>, retailers: Map<string, string>) {
+  if (row.sale_type === "farmer") {
+    return String(row.farmer_name ?? "").trim() || "Farmer";
+  }
+  if (row.sale_type === "retailer") {
+    return row.retailer_id ? retailers.get(String(row.retailer_id)) ?? "Unknown retailer" : "Retailer";
+  }
+  return row.dealer_id ? dealers.get(String(row.dealer_id)) ?? "Unknown dealer" : "Dealer";
+}
+
+async function getOrderSalesRows(employeeId: string, orderNumber?: string) {
+  let query = supabase
+    .from("sales")
+    .select("id, order_number, sale_date, sale_type, hq, dealer_id, retailer_id, farmer_name, product_id, pack_size, box_count, quantity, rate, amount, created_at")
+    .eq("employee_id", employeeId)
+    .order("sale_date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (orderNumber?.trim()) {
+    query = query.eq("order_number", orderNumber.trim());
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
-  const rows = data ?? [];
-  const [doctors, dealers, products] = await Promise.all([
-    getDoctorsByIds(rows.map((row) => String(row.doctor_id ?? ""))),
-    getDealersByIds(rows.map((row) => String(row.dealer_id ?? ""))),
-    getProductsByIds(rows.map((row) => String(row.product_id ?? ""))),
+  return data ?? [];
+}
+
+export async function getEmployeeOrderForms(employeeId: string): Promise<EmployeeOrderFormRow[]> {
+  if (!employeeId?.trim()) return [];
+
+  const rows = await getOrderSalesRows(employeeId);
+  const [dealersResult, retailersResult, productsResult] = await Promise.all([
+    supabase.from("dealers").select("id, dealer_name"),
+    supabase.from("retailers").select("id, retailer_name"),
+    getProductsByIds(rows.map((row: any) => String(row.product_id ?? ""))),
   ]);
-  return rows.map((row) => ({
-    ...row,
-    customer_name: row.doctor_id ? doctors.get(String(row.doctor_id))?.doctor_name : dealers.get(String(row.dealer_id))?.dealer_name,
-    product_name: products.get(String(row.product_id))?.product_name ?? "Unknown product",
+
+  if (dealersResult.error) throw dealersResult.error;
+  if (retailersResult.error) throw retailersResult.error;
+
+  const dealerMap = new Map<string, string>(
+    (dealersResult.data ?? []).map((row: any) => [String(row.id), String(row.dealer_name ?? "")]),
+  );
+  const retailerMap = new Map<string, string>(
+    (retailersResult.data ?? []).map((row: any) => [String(row.id), String(row.retailer_name ?? "")]),
+  );
+
+  return rows.map((row: any) => ({
+    id: String(row.id),
+    order_number: String(row.order_number ?? row.id ?? ""),
+    sale_date: String(row.sale_date ?? ""),
+    sale_type: String(row.sale_type ?? ""),
+    hq: String(row.hq ?? ""),
+    customer_name: resolveOrderCustomer(row, dealerMap, retailerMap),
+    product_name: productsResult.get(String(row.product_id ?? ""))?.product_name ?? "Unknown product",
+    pack_size: String(row.pack_size ?? ""),
+    box_count: Number(row.box_count ?? 0),
+    quantity: Number(row.quantity ?? 0),
+    rate: Number(row.rate ?? 0),
+    amount: Number(row.amount ?? Number(row.quantity ?? 0) * Number(row.rate ?? 0)),
   }));
 }
+
+export async function getEmployeeOrderFormDetails(
+  employeeId: string,
+  orderNumber: string,
+): Promise<EmployeeOrderFormDetails | null> {
+  if (!employeeId?.trim() || !orderNumber?.trim()) return null;
+
+  const rows = await getOrderSalesRows(employeeId, orderNumber);
+  if (!rows.length) return null;
+
+  const [employeeResult, dealersResult, retailersResult, productsResult] = await Promise.all([
+    supabase.from("employees").select("full_name").eq("id", employeeId).maybeSingle(),
+    supabase.from("dealers").select("id, dealer_name"),
+    supabase.from("retailers").select("id, retailer_name"),
+    getProductsByIds(rows.map((row: any) => String(row.product_id ?? ""))),
+  ]);
+
+  if (employeeResult.error) throw employeeResult.error;
+  if (dealersResult.error) throw dealersResult.error;
+  if (retailersResult.error) throw retailersResult.error;
+
+  const dealerMap = new Map<string, string>(
+    (dealersResult.data ?? []).map((row: any) => [String(row.id), String(row.dealer_name ?? "")]),
+  );
+  const retailerMap = new Map<string, string>(
+    (retailersResult.data ?? []).map((row: any) => [String(row.id), String(row.retailer_name ?? "")]),
+  );
+
+  const first = rows[0] as any;
+  const lines = rows.map((row: any) => ({
+    product_name: productsResult.get(String(row.product_id ?? ""))?.product_name ?? "Unknown product",
+    pack_size: String(row.pack_size ?? ""),
+    box_count: Number(row.box_count ?? 0),
+    quantity: Number(row.quantity ?? 0),
+    rate: Number(row.rate ?? 0),
+    amount: Number(row.amount ?? Number(row.quantity ?? 0) * Number(row.rate ?? 0)),
+  }));
+
+  return {
+    order_number: String(first.order_number ?? first.id ?? ""),
+    sale_date: String(first.sale_date ?? ""),
+    sale_type: String(first.sale_type ?? ""),
+    hq: String(first.hq ?? ""),
+    employee_name: String(employeeResult.data?.full_name ?? ""),
+    customer_name: resolveOrderCustomer(first, dealerMap, retailerMap),
+    lines,
+    total_amount: lines.reduce((sum, line) => sum + line.amount, 0),
+  };
+}
+

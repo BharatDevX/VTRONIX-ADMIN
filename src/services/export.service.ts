@@ -198,3 +198,78 @@ export function renderEmployeeTrackingPdf(popup: Window, data: EmployeeTrackingP
   window.setTimeout(() => { popup.print(); popup.close(); }, 250);
 }
 
+
+
+export type OrderFormPdfData = {
+  order_number: string;
+  sale_date: string;
+  sale_type: string;
+  hq: string;
+  employee_name: string;
+  customer_name: string;
+  lines: Array<{
+    product_name: string;
+    pack_size: string;
+    box_count: number;
+    quantity: number;
+    rate: number;
+    amount: number;
+  }>;
+  total_amount: number;
+};
+
+export function renderOrderFormPdf(popup: Window, order: OrderFormPdfData) {
+  const escapeHtml = (value: unknown) => String(value ?? "—")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+  const money = (value: number) => `₹${Number(value ?? 0).toFixed(2)}`;
+
+  const saleType = order.sale_type === "farmer"
+    ? "Farmer Sale"
+    : order.sale_type === "retailer"
+      ? "Retailer Sale"
+      : "Dealer Sale";
+
+  const productRows = order.lines.length
+    ? order.lines.map((line) => `<tr>
+        <td>${escapeHtml(line.product_name)}</td>
+        <td>${escapeHtml(line.pack_size)}</td>
+        <td class="num">${escapeHtml(line.box_count)}</td>
+        <td class="num">${escapeHtml(line.quantity)}</td>
+        <td class="num">${money(line.rate)}</td>
+        <td class="num">${money(line.amount)}</td>
+      </tr>`).join("")
+    : `<tr><td colspan="6" class="empty">No product details recorded for this order.</td></tr>`;
+
+  popup.document.open();
+  popup.document.write(`<!doctype html><html><head><title>Vetronix Order Form - ${escapeHtml(order.order_number)}</title><style>
+    @page{size:A4 portrait;margin:14mm}body{font-family:Arial,Helvetica,sans-serif;color:#172033;margin:0;font-size:11px}
+    .brand{font-size:24px;font-weight:800;letter-spacing:1px;text-align:center;margin-bottom:18px}
+    .top{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #172033}
+    .meta-label{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:#64748b;font-weight:700}.meta-value{font-size:12px;font-weight:700;margin-top:3px}
+    table{width:100%;border-collapse:collapse;font-size:10px}th{background:#172033;color:#fff;text-align:left;padding:8px;border:1px solid #dbe2ea}td{padding:7px;border:1px solid #dbe2ea;vertical-align:top}tr:nth-child(even){background:#f8fafc}.num{text-align:right;white-space:nowrap}
+    .total td{font-weight:800;font-size:11px;background:#eef2f7}.total-label{text-align:right}.empty{text-align:center;color:#64748b;padding:14px}
+    .footer{margin-top:18px;font-size:9px;color:#64748b;text-align:right}@media print{.no-print{display:none}}
+  </style></head><body>
+    <div class="brand">VETRONIX</div>
+    <div class="top">
+      <div><div class="meta-label">Date</div><div class="meta-value">${escapeHtml(order.sale_date)}</div></div>
+      <div><div class="meta-label">Employee Name</div><div class="meta-value">${escapeHtml(order.employee_name)}</div></div>
+      <div><div class="meta-label">Customer</div><div class="meta-value">${escapeHtml(order.customer_name)}</div></div>
+      <div><div class="meta-label">Head Quarter</div><div class="meta-value">${escapeHtml(order.hq || "—")}</div></div>
+      <div><div class="meta-label">Order Number</div><div class="meta-value">${escapeHtml(order.order_number)}</div></div>
+      <div><div class="meta-label">Sale Type</div><div class="meta-value">${escapeHtml(saleType)}</div></div>
+    </div>
+    <table><thead><tr><th>Product Details</th><th>Pack Size</th><th>Box Qty</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>
+      ${productRows}
+      <tr class="total"><td colspan="5" class="total-label">Total</td><td class="num">${money(order.total_amount)}</td></tr>
+    </tbody></table>
+    <div class="footer">Vetronix ERP · Order Form</div>
+  </body></html>`);
+  popup.document.close();
+  popup.focus();
+  window.setTimeout(() => { popup.print(); popup.close(); }, 250);
+}
