@@ -169,43 +169,75 @@ export async function getEmployeeTrackingSummary(
   const monthStart = monthStartLocal(date);
   const tomorrow = addOneDay(startOfLocalDay(date));
 
-  const { data, error } = await supabase
-    .from("employee_location_history")
-    .select("session_id, cumulative_km, recorded_at")
-    .eq("employee_id", employeeId)
-    .gte("recorded_at", monthStart.toISOString())
-    .lt("recorded_at", tomorrow.toISOString())
-    .order("recorded_at", { ascending: true });
+  // Use the completed work session as the authoritative final distance.
+  // employee_location_history is intentionally checkpoint-based (~5 km), so
+  // its latest cumulative_km can lag behind the final work-session distance
+  // when the final checkpoint write is delayed/missed.
+  const [{ data: history, error: historyError }, { data: sessions, error: sessionsError }] =
+    await Promise.all([
+      supabase
+        .from("employee_location_history")
+        .select("session_id, cumulative_km, recorded_at")
+        .eq("employee_id", employeeId)
+        .gte("recorded_at", monthStart.toISOString())
+        .lt("recorded_at", tomorrow.toISOString())
+        .order("recorded_at", { ascending: true }),
+      supabase
+        .from("work_sessions")
+        .select("id, work_date, status, total_km")
+        .eq("employee_id", employeeId)
+        .gte("work_date", today.slice(0, 7) + "-01")
+        .lt("work_date", tomorrow.toISOString().slice(0, 10)),
+    ]);
 
-  if (error) throw error;
+  if (historyError) throw historyError;
+  if (sessionsError) throw sessionsError;
 
-  // cumulative_km resets per work session, so monthly distance must be the
-  // last/max cumulative value from each session rather than summing rows.
-  const sessionTotals = new Map<string, number>();
+  // For an active session, history is the best live estimate. Once the
+  // employee ends work, work_sessions.total_km is the authoritative final
+  // value written by the Employee App.
+  const historySessionTotals = new Map<string, number>();
   let legacyTotal = 0;
-  let todayKm = 0;
+  let historyTodayKm = 0;
 
-  for (const row of data ?? []) {
+  for (const row of history ?? []) {
     const value = Number(row.cumulative_km ?? 0);
-    const recordedDate = row.recorded_at ? localDateFromTimestamp(String(row.recorded_at)) : "";
+    const recordedDate = row.recorded_at
+      ? localDateFromTimestamp(String(row.recorded_at))
+      : "";
     const sessionId = row.session_id ? String(row.session_id) : null;
 
     if (sessionId) {
-      sessionTotals.set(sessionId, Math.max(sessionTotals.get(sessionId) ?? 0, value));
+      historySessionTotals.set(
+        sessionId,
+        Math.max(historySessionTotals.get(sessionId) ?? 0, value),
+      );
     } else {
-      // Legacy rows without a session id have employee-level cumulative values.
       legacyTotal = Math.max(legacyTotal, value);
     }
 
     if (recordedDate === today) {
-      todayKm = Math.max(todayKm, value);
+      historyTodayKm = Math.max(historyTodayKm, value);
     }
   }
 
-  const monthKm = Array.from(sessionTotals.values()).reduce((sum, value) => sum + value, 0) + legacyTotal;
+  let activeTodayKm = historyTodayKm;
+
+  for (const session of sessions ?? []) {
+    const value = Number(session.total_km ?? 0);
+
+    if (session.work_date === today && session.status === "completed") {
+      activeTodayKm = Number.isFinite(value) ? value : historyTodayKm;
+    }
+  }
+
+  const monthKm = (sessions ?? []).reduce((sum, session) => {
+    const value = Number(session.total_km ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0) + legacyTotal;
 
   return {
-    todayKm: Number(todayKm.toFixed(2)),
+    todayKm: Number(activeTodayKm.toFixed(2)),
     monthKm: Number(monthKm.toFixed(2)),
     vehicleType: await getVehicleType(employeeId, date),
   };
@@ -217,19 +249,28 @@ export async function getLiveTrackingReportRows(date = new Date()) {
   const tomorrow = addOneDay(start);
   const monthStart = monthStartLocal(date);
 
-  const [{ data: employees, error: employeesError }, { data: history, error: historyError }] =
-    await Promise.all([
-      supabase.from("employees").select("id, full_name, employee_id").eq("is_active", true).order("full_name"),
-      supabase
-        .from("employee_location_history")
-        .select("employee_id, session_id, latitude, longitude, address, cumulative_km, recorded_at")
-        .gte("recorded_at", monthStart.toISOString())
-        .lt("recorded_at", tomorrow.toISOString())
-        .order("recorded_at", { ascending: true }),
-    ]);
+  const [
+    { data: employees, error: employeesError },
+    { data: history, error: historyError },
+    { data: workSessions, error: workSessionsError },
+  ] = await Promise.all([
+    supabase.from("employees").select("id, full_name, employee_id").eq("is_active", true).order("full_name"),
+    supabase
+      .from("employee_location_history")
+      .select("employee_id, session_id, latitude, longitude, address, cumulative_km, recorded_at")
+      .gte("recorded_at", monthStart.toISOString())
+      .lt("recorded_at", tomorrow.toISOString())
+      .order("recorded_at", { ascending: true }),
+    supabase
+      .from("work_sessions")
+      .select("employee_id, work_date, status, total_km")
+      .gte("work_date", monthStart.toISOString().slice(0, 10))
+      .lt("work_date", tomorrow.toISOString().slice(0, 10)),
+  ]);
 
   if (employeesError) throw employeesError;
   if (historyError) throw historyError;
+  if (workSessionsError) throw workSessionsError;
 
   const employeeMap = new Map((employees ?? []).map((employee) => [String(employee.id), employee]));
   const rowsByEmployee = new Map<string, {
@@ -280,9 +321,20 @@ export async function getLiveTrackingReportRows(date = new Date()) {
   }
 
   for (const [employeeId, row] of rowsByEmployee) {
-    const monthKm = Array.from(sessionTotals.entries())
+    const historyMonthKm = Array.from(sessionTotals.entries())
       .filter(([key]) => key.startsWith(`${employeeId}:`))
       .reduce((sum, [, value]) => sum + value, 0) + (monthLegacyTotals.get(employeeId) ?? 0);
+
+    const employeeSessions = (workSessions ?? []).filter(
+      (session) => String(session.employee_id) === employeeId,
+    );
+    const completedMonthKm = employeeSessions.reduce((sum, session) => {
+      const value = Number(session.total_km ?? 0);
+      return sum + (session.status === "completed" && Number.isFinite(value) ? value : 0);
+    }, 0);
+    const completedToday = employeeSessions.find(
+      (session) => session.work_date === startDate && session.status === "completed",
+    );
 
     const todayPoints = (history ?? [])
       .filter((point) => String(point.employee_id) === employeeId && localDateFromTimestamp(String(point.recorded_at)) === startDate)
@@ -291,6 +343,17 @@ export async function getLiveTrackingReportRows(date = new Date()) {
     row.middle_locations = todayPoints.length > 2
       ? todayPoints.slice(1, -1).join(" → ")
       : "—";
+
+    // Completed work_sessions are authoritative for final totals; history is
+    // used while a session is still active.
+    if (completedToday) {
+      const finalTodayKm = Number(completedToday.total_km ?? 0);
+      if (Number.isFinite(finalTodayKm)) {
+        row.total_km_today = finalTodayKm;
+      }
+    }
+
+    const monthKm = completedMonthKm > 0 ? completedMonthKm : historyMonthKm;
     row.total_km_today = Number(row.total_km_today.toFixed(2));
     row.total_km_month = Number(monthKm.toFixed(2));
   }
