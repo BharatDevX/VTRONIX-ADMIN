@@ -1,103 +1,37 @@
 import { supabase } from "../../../services/supabase";
 import type { SecondarySale } from "../types/secondarySales.types";
 
-interface RelatedName {
-  dealer_name?: string | null;
-  product_name?: string | null;
-}
-
-interface SecondarySaleRow {
-  quantity: number | null;
-  amount: number | null;
-  dealers?: RelatedName | RelatedName[] | null;
-  products?: RelatedName | RelatedName[] | null;
-}
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  if (typeof error === "object" && error !== null && "message" in error) {
-    return String((error as { message?: string }).message ?? "");
-  }
-
-  return "";
-}
-
-function toFriendlyError(error: unknown): Error {
-  const message = getErrorMessage(error).toLowerCase();
-
-  if (message.includes("network") || message.includes("fetch") || message.includes("timeout")) {
-    return new Error("Network issue. Please check your connection and try again.");
-  }
-
-  return new Error("Unable to load the secondary sales report right now.");
-}
-
-function firstRelation<T>(value: T | T[] | null | undefined): T | null {
-  if (Array.isArray(value)) {
-    return value[0] ?? null;
-  }
-
-  return value ?? null;
-}
-
+/**
+ * Admin-only Secondary Sale report.
+ *
+ * The database uses RLS on the secondary sale tables, so the Admin Panel
+ * reads this report through the dedicated SECURITY DEFINER RPC instead of
+ * querying the protected tables one-by-one from the browser.
+ */
 export async function getSecondarySales(employeeId: string, saleDate?: string): Promise<SecondarySale[]> {
-  if (!employeeId) {
-    return [];
-  }
+  const normalizedEmployeeId = employeeId?.trim();
+  if (!normalizedEmployeeId) return [];
 
-  let query = supabase
-    .from("sales")
-    .select(`
-      quantity,
-      amount,
-      dealers(dealer_name),
-      products(product_name)
-    `)
-    .eq("employee_id", employeeId)
-    .order("sale_date", {
-      ascending: false,
-    })
-    .order("created_at", { ascending: false });
-
-  if (saleDate?.trim()) {
-    query = query.eq("sale_date", saleDate.trim());
-  }
-
-  const { data, error } = await query;
-
-  if (error) throw toFriendlyError(error);
-
-  const reports: SecondarySale[] = [];
-
-  ((data ?? []) as SecondarySaleRow[]).forEach((item) => {
-    const dealer = firstRelation(item.dealers);
-    const product = firstRelation(item.products);
-
-    const dealerName = dealer?.dealer_name ?? "";
-    const productName = product?.product_name ?? "";
-    const quantity = Number(item.quantity ?? 0);
-    const amount = Number(item.amount ?? 0);
-
-    const existingReport = reports.find(
-      (report) => report.dealer_name === dealerName && report.product_name === productName
-    );
-
-    if (existingReport) {
-      existingReport.total_quantity += quantity;
-      existingReport.total_amount += amount;
-      return;
-    }
-
-    reports.push({
-      dealer_name: dealerName,
-      product_name: productName,
-      total_quantity: quantity,
-      total_amount: amount,
-    });
+  const { data, error } = await supabase.rpc("admin_get_secondary_sales", {
+    p_employee_id: normalizedEmployeeId,
+    p_sale_date: saleDate?.trim() || null,
   });
 
-  return reports.sort((left, right) => left.dealer_name.localeCompare(right.dealer_name));
+  if (error) {
+    console.error("Secondary Sale RPC error:", error);
+    throw new Error(error.message || "Unable to load the secondary sales report right now.");
+  }
+
+  return ((data ?? []) as SecondarySale[]).map((row) => ({
+    id: String(row.id),
+    sale_date: String(row.sale_date ?? ""),
+    employee_name: String(row.employee_name ?? ""),
+    dealer_name: String(row.dealer_name ?? ""),
+    hq: String(row.hq ?? ""),
+    product_name: String(row.product_name ?? ""),
+    pack_size: String(row.pack_size ?? ""),
+    quantity: Number(row.quantity ?? 0),
+    rate: Number(row.rate ?? 0),
+    amount: Number(row.amount ?? 0),
+  }));
 }

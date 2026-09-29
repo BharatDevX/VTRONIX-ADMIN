@@ -5,12 +5,17 @@ export default function SecondarySalesPage() {
   return (
     <EmployeeScopedPage
       title="Secondary Sale"
-      description="Select an employee to view that employee's secondary sales."
+      description="Select an employee to view that employee's detailed secondary sales."
       columns={[
+        { key: "sale_date", label: "Date" },
+        { key: "employee_name", label: "Employee" },
         { key: "dealer_name", label: "Dealer" },
+        { key: "hq", label: "Head Quarter" },
         { key: "product_name", label: "Product" },
-        { key: "total_quantity", label: "Total Quantity" },
-        { key: "total_amount", label: "Total Amount" },
+        { key: "pack_size", label: "Pack Size" },
+        { key: "quantity", label: "Qty" },
+        { key: "rate", label: "Rate" },
+        { key: "amount", label: "Amount" },
       ]}
       load={(employeeId) => getSecondarySales(employeeId)}
     />
