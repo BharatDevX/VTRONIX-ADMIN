@@ -118,11 +118,6 @@ export type EmployeeOrderFormRow = {
   sale_type: "dealer" | "retailer" | "farmer" | string;
   hq: string;
   customer_name: string;
-  product_name: string;
-  pack_size: string;
-  box_count: number;
-  quantity: number;
-  rate: number;
   amount: number;
 };
 
@@ -175,10 +170,11 @@ export async function getEmployeeOrderForms(employeeId: string): Promise<Employe
   if (!employeeId?.trim()) return [];
 
   const rows = await getOrderSalesRows(employeeId);
-  const [dealersResult, retailersResult, productsResult] = await Promise.all([
+  if (!rows.length) return [];
+
+  const [dealersResult, retailersResult] = await Promise.all([
     supabase.from("dealers").select("id, dealer_name"),
     supabase.from("retailers").select("id, retailer_name"),
-    getProductsByIds(rows.map((row: any) => String(row.product_id ?? ""))),
   ]);
 
   if (dealersResult.error) throw dealersResult.error;
@@ -191,20 +187,33 @@ export async function getEmployeeOrderForms(employeeId: string): Promise<Employe
     (retailersResult.data ?? []).map((row: any) => [String(row.id), String(row.retailer_name ?? "")]),
   );
 
-  return rows.map((row: any) => ({
-    id: String(row.id),
-    order_number: String(row.order_number ?? row.id ?? ""),
-    sale_date: String(row.sale_date ?? ""),
-    sale_type: String(row.sale_type ?? ""),
-    hq: String(row.hq ?? ""),
-    customer_name: resolveOrderCustomer(row, dealerMap, retailerMap),
-    product_name: productsResult.get(String(row.product_id ?? ""))?.product_name ?? "Unknown product",
-    pack_size: String(row.pack_size ?? ""),
-    box_count: Number(row.box_count ?? 0),
-    quantity: Number(row.quantity ?? 0),
-    rate: Number(row.rate ?? 0),
-    amount: Number(row.amount ?? Number(row.quantity ?? 0) * Number(row.rate ?? 0)),
-  }));
+  // The Order Form page is intentionally a summary/list view: one row per
+  // order number, without medicine/product columns. The complete medicine
+  // breakdown remains available from the individual PDF button.
+  const grouped = new Map<string, EmployeeOrderFormRow>();
+
+  for (const row of rows as any[]) {
+    const orderNumber = String(row.order_number ?? row.id ?? "");
+    const existing = grouped.get(orderNumber);
+    const amount = Number(row.amount ?? Number(row.quantity ?? 0) * Number(row.rate ?? 0));
+
+    if (existing) {
+      existing.amount += amount;
+      continue;
+    }
+
+    grouped.set(orderNumber, {
+      id: String(row.id),
+      order_number: orderNumber,
+      sale_date: String(row.sale_date ?? ""),
+      sale_type: String(row.sale_type ?? ""),
+      hq: String(row.hq ?? ""),
+      customer_name: resolveOrderCustomer(row, dealerMap, retailerMap),
+      amount,
+    });
+  }
+
+  return Array.from(grouped.values());
 }
 
 export async function getEmployeeOrderFormDetails(

@@ -105,11 +105,6 @@ export default function EmployeeOrderFormPage() {
         { key: "sale_type", label: "Type" },
         { key: "customer_name", label: "Customer" },
         { key: "hq", label: "Head Quarter" },
-        { key: "product_name", label: "Product Details" },
-        { key: "pack_size", label: "Pack Size" },
-        { key: "box_count", label: "Box Qty" },
-        { key: "quantity", label: "Quantity" },
-        { key: "rate", label: "Rate" },
         { key: "amount", label: "Amount" },
       ],
       rows,
@@ -120,7 +115,7 @@ export default function EmployeeOrderFormPage() {
     <div className="space-y-5 p-5 lg:p-6">
       <PageHeader
         title={selected ? `Order Form — ${selected.full_name}` : "Order Form"}
-        description="Detailed order form records grouped by employee, with complete medicine and pricing information."
+        description="Order summary by employee. Product-wise details are available inside each order PDF."
         actions={
           selected ? (
             <div className="flex flex-wrap gap-2">
@@ -162,7 +157,7 @@ export default function EmployeeOrderFormPage() {
       {selected ? (
         <Card>
           <CardHeader>
-            <CardTitle>{rows.length} medicine records</CardTitle>
+            <CardTitle>{rows.length} orders</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -173,7 +168,7 @@ export default function EmployeeOrderFormPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[1500px] text-sm">
+                <table className="w-full min-w-[900px] text-sm">
                   <thead>
                     <tr className="border-b text-left text-xs uppercase tracking-wide text-slate-500">
                       <th className="px-3 py-3">Date</th>
@@ -181,35 +176,18 @@ export default function EmployeeOrderFormPage() {
                       <th className="px-3 py-3">Type</th>
                       <th className="px-3 py-3">Customer</th>
                       <th className="px-3 py-3">Head Quarter</th>
-                      <th className="px-3 py-3">Product Details</th>
-                      <th className="px-3 py-3">Pack Size</th>
-                      <th className="px-3 py-3">Box Qty</th>
-                      <th className="px-3 py-3">Quantity</th>
-                      <th className="px-3 py-3">Rate</th>
-                      <th className="px-3 py-3">Amount</th>
+                      <th className="px-3 py-3 text-right">Amount</th>
                       <th className="px-3 py-3">PDF</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((row) => (
-                      <tr
-                        className="border-b last:border-0 dark:border-slate-800"
-                        key={row.id}
-                      >
+                      <tr className="border-b last:border-0 dark:border-slate-800" key={row.order_number}>
                         <td className="px-3 py-3 align-top whitespace-nowrap">{row.sale_date}</td>
-                        <td className="px-3 py-3 align-top font-semibold whitespace-nowrap">
-                          {row.order_number}
-                        </td>
-                        <td className="px-3 py-3 align-top whitespace-nowrap">
-                          {saleTypeLabel(row.sale_type)}
-                        </td>
+                        <td className="px-3 py-3 align-top font-semibold whitespace-nowrap">{row.order_number}</td>
+                        <td className="px-3 py-3 align-top whitespace-nowrap">{saleTypeLabel(row.sale_type)}</td>
                         <td className="px-3 py-3 align-top font-semibold">{row.customer_name}</td>
                         <td className="px-3 py-3 align-top">{row.hq || "—"}</td>
-                        <td className="px-3 py-3 align-top font-semibold">{row.product_name}</td>
-                        <td className="px-3 py-3 align-top">{row.pack_size || "—"}</td>
-                        <td className="px-3 py-3 align-top text-right">{row.box_count}</td>
-                        <td className="px-3 py-3 align-top text-right">{row.quantity}</td>
-                        <td className="px-3 py-3 align-top text-right">{money(row.rate)}</td>
                         <td className="px-3 py-3 align-top font-semibold text-right">{money(row.amount)}</td>
                         <td className="px-3 py-3 align-top">
                           <Button

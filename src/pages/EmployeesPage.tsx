@@ -45,6 +45,9 @@ function EmployeeForm({ employee, onDone, onFeedback }: { employee?: Employee; o
           head_quarters: employee.head_quarters ?? (employee.branch ? [employee.branch] : []),
           full_name: employee.full_name,
           mobile: employee.mobile,
+          // Keep the edit form value aligned with the nullable DB column.
+          // An employee without an email must remain empty, not become ''.
+          email: employee.email ?? "",
         }
       : {
           branch: "",
