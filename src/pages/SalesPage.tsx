@@ -48,7 +48,7 @@
           columns={columns}
           count={sales.data?.count ?? 0}
           data={sales.data?.data ?? []}
-          description="Order form entries across counter, doctor, retailer, and farmer sales with delivery tracking and invoice uploads."
+          description="Update employee order delivery progress, record delivered amounts, and upload invoice documents."
           emptyDescription="Order form records submitted from the mobile app will appear here."
           emptyTitle="No order forms found"
           exportFilename="order-form.csv"
@@ -63,7 +63,7 @@
             { label: "Retailer", value: "retailer" },
             { label: "Farmer", value: "farmer" },
           ]}
-          title="Order Form"
+          title="Order Delivery Status"
         />
 
         <SaleDeliveryDrawer sale={selectedSale} open={Boolean(selectedSale)} onClose={() => setSelectedSale(null)} />

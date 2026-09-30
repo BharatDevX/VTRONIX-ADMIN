@@ -73,6 +73,7 @@ export default function AppRoutes() {
           <Route element={<LazyPage><RetailersPage /></LazyPage>} path="retailers" />
           <Route element={<LazyPage><ProductsPage /></LazyPage>} path="products" />
           <Route element={<LazyPage><SalesPage /></LazyPage>} path="sales" />
+          <Route element={<LazyPage><SalesPage /></LazyPage>} path="order-delivery" />
           <Route element={<LazyPage><EmployeeOrderFormPage /></LazyPage>} path="order-form" />
           <Route element={<LazyPage><EmployeeProfilePage /></LazyPage>} path="employee-profile" />
           <Route element={<LazyPage><SalesTargetsPage /></LazyPage>} path="sales-targets" />

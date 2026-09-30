@@ -67,6 +67,7 @@ const navGroups = [
   ] },
   { label: "Operations", items: [
     { icon: CalendarClock, label: "Follow-Ups", to: "/employee-follow-ups" },
+    { icon: Package, label: "Order Delivery Status", to: "/order-delivery" },
     { icon: Map, label: "Live Tracking", to: "/tracking" },
   ] },
   { label: "System", items: [
