@@ -11,7 +11,7 @@ import { Field } from "@/components/ui/field";
 import { inputClassName } from "@/lib/form-style";
 
 const loginSchema = z.object({
-  email: z.email("Enter a valid email."),
+  employeeId: z.string().trim().min(1, "Employee ID is required."),
   password: z.string().min(6, "Password must contain at least 6 characters."),
 });
 
@@ -21,7 +21,7 @@ export function LoginPage() {
   const { session, signIn } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const form = useForm<LoginForm>({
-    defaultValues: { email: "", password: "" },
+    defaultValues: { employeeId: "", password: "" },
     resolver: zodResolver(loginSchema),
   });
 
@@ -50,18 +50,18 @@ export function LoginPage() {
           onSubmit={form.handleSubmit(async (values) => {
             setError(null);
             try {
-              await signIn(values.email, values.password);
+              await signIn(values.employeeId, values.password);
             } catch (caught) {
               setError(caught instanceof Error ? caught.message : "Unable to sign in.");
             }
           })}
         >
           <h2 className="text-xl font-semibold text-slate-950 dark:text-white">Admin sign in</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Use your organization admin account.</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Use your Employee ID and password.</p>
 
           <div className="mt-6 grid gap-4">
-            <Field error={form.formState.errors.email?.message} label="Email">
-              <input className={inputClassName()} placeholder="admin@vetronix.in" {...form.register("email")} />
+            <Field error={form.formState.errors.employeeId?.message} label="Employee ID">
+              <input className={inputClassName()} placeholder="VET/2025/1001" {...form.register("employeeId")} />
             </Field>
             <Field error={form.formState.errors.password?.message} label="Password">
               <input className={inputClassName()} placeholder="••••••••" type="password" {...form.register("password")} />

@@ -29,6 +29,7 @@ import logo from "../assets/logo.png";
 import { useAuth } from "@/app/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { canAccessRoute } from "@/config/adminPermissions";
 
 const navGroups = [
   { label: "", items: [{ icon: LayoutDashboard, label: "Dashboard", to: "/" }] },
@@ -89,12 +90,16 @@ import { ThemeToggleButton } from "@/components/ui/theme-toggle";
 import { useTheme } from "@/lib/theme";
 
 export default function AppLayout() {
-  const { profile, signOut } = useAuth();
+  const { profile, adminPermissions, signOut } = useAuth();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useTheme();
+
+  const visibleNavGroups = useMemo(() => navGroups
+    .map((group) => ({ ...group, items: group.items.filter((item) => canAccessRoute(adminPermissions, item.to)) }))
+    .filter((group) => group.items.length > 0), [adminPermissions]);
 
   const pageTitle = useMemo(() => titleFromPath(location.pathname), [location.pathname]);
 
@@ -125,7 +130,7 @@ export default function AppLayout() {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {navGroups.map((group) => (
+          {visibleNavGroups.map((group) => (
             <div key={group.label || "dashboard"} className="mb-4">
               {!collapsed && group.label ? <p className="px-3 pb-2 pt-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">{group.label}</p> : null}
               {group.items.map((item) => (

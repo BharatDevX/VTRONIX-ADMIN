@@ -23,10 +23,8 @@ export function ProtectedRoute() {
   }
 
   if (role !== "admin") {
-    <Navigate replace to="/forbidden" />
-    return <Outlet />;
+    return <Navigate replace to="/forbidden" />;
   }
-  console.log(session)
 
   return <Outlet />;
 }

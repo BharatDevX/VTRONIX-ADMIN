@@ -5,6 +5,9 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { LoginPage } from "@/components/auth/LoginPage";
 import AppLayout from "@/layouts/AppLayout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGuard } from "@/components/auth/PermissionGuard";
+import { useAuth } from "@/app/auth";
+import { HR_ALLOWED_ROUTES, canAccessRoute } from "@/config/adminPermissions";
 
 const AttendancePage = lazy(() => import("@/pages/AttendancePage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
@@ -51,14 +54,24 @@ function LazyPage({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<RouteLoader />}>{children}</Suspense>;
 }
 
+function DefaultAdminRoute() {
+  const { adminPermissions } = useAuth();
+  if (adminPermissions && !canAccessRoute(adminPermissions, "/")) {
+    const destination = adminPermissions.allowedRoutes[0] ?? HR_ALLOWED_ROUTES[0];
+    return <Navigate replace to={destination} />;
+  }
+
+  return <LazyPage><DashboardPage /></LazyPage>;
+}
+
 export default function AppRoutes() {
   return (
     <Routes>
       <Route element={<LoginPage />} path="/login" />
       <Route element={<LazyPage><ForbiddenPage /></LazyPage>} path="/forbidden" />
       <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route element={<LazyPage><DashboardPage /></LazyPage>} index />
+        <Route element={<PermissionGuard><AppLayout /></PermissionGuard>}>
+          <Route element={<DefaultAdminRoute />} index />
           <Route element={<LazyPage><EmployeesPage /></LazyPage>} path="employees" />
           <Route element={<LazyPage><AttendancePage /></LazyPage>} path="attendance" />
           <Route element={<LazyPage><DoctorPage /></LazyPage>} path="doctor" />
